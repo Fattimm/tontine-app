@@ -3,63 +3,68 @@
 namespace App\Http\Controllers;
 
 use App\Models\Membre;
-use Illuminate\Http\Request;
+use App\Services\MembreService;
+use App\Http\Requests\StoreMembreRequest;
+use App\Http\Requests\UpdateMembreRequest;
 
 class MembreController extends Controller
 {
+    public function __construct(
+        private MembreService $membreService  // ✅ Injection de dépendance
+    ) {}
+
     /**
-     * Display a listing of the resource.
+     * Liste des membres avec recherche
      */
     public function index()
     {
-        //
+        $filtres = request()->only(['search', 'statut']);
+        $membres = $this->membreService->getListe($filtres);
+
+        return view('membres.index', compact('membres', 'filtres'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        return view('membres.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreMembreRequest $request)
     {
-        //
+        $this->membreService->creer($request->validated());
+
+        return redirect()
+            ->route('membres.index')
+            ->with('success', 'Membre ajouté avec succès.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Membre $membre)
     {
-        //
+        $resume = $this->membreService->getResume($membre);
+
+        return view('membres.show', compact('membre', 'resume'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Membre $membre)
     {
-        //
+        return view('membres.edit', compact('membre'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Membre $membre)
+    public function update(UpdateMembreRequest $request, Membre $membre)
     {
-        //
+        $this->membreService->modifier($membre, $request->validated());
+
+        return redirect()
+            ->route('membres.index')
+            ->with('success', 'Membre mis à jour avec succès.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Membre $membre)
     {
-        //
+        $this->membreService->supprimer($membre);
+
+        return redirect()
+            ->route('membres.index')
+            ->with('success', 'Membre supprimé avec succès.');
     }
 }
