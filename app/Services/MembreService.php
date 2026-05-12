@@ -12,7 +12,7 @@ class MembreService
      */
     public function getListe(array $filtres = [], int $perPage = 10): LengthAwarePaginator
     {
-        $query = Membre::query();
+        $query = Membre::query()->withCount('tontines');
 
         // ✅ Recherche sur nom, prénom ou téléphone
         if (!empty($filtres['search'])) {

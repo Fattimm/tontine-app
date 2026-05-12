@@ -7,36 +7,16 @@
         <h4 class="mb-0 fw-bold">👥 Membres</h4>
         <small class="text-muted">{{ $membres->total() }} membre(s) enregistré(s)</small>
     </div>
-    <a href="{{ route('membres.create') }}" class="btn btn-success btn-sm px-3">
-        + Nouveau membre
-    </a>
+    <a href="{{ route('membres.create') }}" class="btn btn-success btn-sm px-3">+ Nouveau membre</a>
 </div>
 
-{{-- Barre de recherche --}}
-<div class="card mb-4">
-    <div class="card-body py-2">
-        <form method="GET" action="{{ route('membres.index') }}" class="row g-2 align-items-center">
-            <div class="col-md-5">
-                <input type="text" name="search" class="form-control form-control-sm"
-                       placeholder="Rechercher par nom, prénom ou téléphone..."
-                       value="{{ $filtres['search'] ?? '' }}">
-            </div>
-            <div class="col-md-3">
-                <select name="statut" class="form-select form-select-sm">
-                    <option value="">Tous les statuts</option>
-                    <option value="actif"   {{ ($filtres['statut'] ?? '') === 'actif'   ? 'selected' : '' }}>Actif</option>
-                    <option value="inactif" {{ ($filtres['statut'] ?? '') === 'inactif' ? 'selected' : '' }}>Inactif</option>
-                </select>
-            </div>
-            <div class="col-auto">
-                <button type="submit" class="btn btn-outline-success btn-sm">Filtrer</button>
-                <a href="{{ route('membres.index') }}" class="btn btn-outline-secondary btn-sm">Réinitialiser</a>
-            </div>
-        </form>
-    </div>
-</div>
+{{-- ✅ FILTRE ICI --}}
+<x-filtres
+    :route="route('membres.index')"
+    :champs="['search', 'statut_membre']"
+    placeholder="Rechercher par nom, prénom ou téléphone..."
+/>
 
-{{-- Tableau --}}
 <div class="card">
     <div class="card-body p-0">
         <table class="table table-hover mb-0">
@@ -67,7 +47,7 @@
                     </td>
                     <td>
                         <span class="badge bg-light text-dark border">
-                            {{ $membre->tontines_count ?? 0 }}
+                            {{ $membre->tontines_count }}
                         </span>
                     </td>
                     <td class="text-end">
@@ -98,7 +78,6 @@
     </div>
 </div>
 
-{{-- Pagination --}}
 <div class="mt-3 d-flex justify-content-center">
     {{ $membres->withQueryString()->links() }}
 </div>

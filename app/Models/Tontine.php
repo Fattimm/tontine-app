@@ -25,7 +25,9 @@ class Tontine extends Model
     {
         return $this->belongsToMany(Membre::class, 'membre_tontine')
                     ->withPivot('date_adhesion', 'statut')
-                    ->withTimestamps();
+                    ->withTimestamps()
+                    ->wherePivot('statut', 'actif') 
+                    ->whereNull('membres.deleted_at'); 
     }
 
     public function cotisations()
@@ -47,4 +49,13 @@ class Tontine extends Model
                     ->with('membre')
                     ->first();
     }
+
+    public function tousLesMembres()
+    {
+        return $this->belongsToMany(Membre::class, 'membre_tontine')
+                    ->withPivot('date_adhesion', 'statut')
+                    ->withTimestamps()
+                    ->withTrashed(); 
+    }
+
 }

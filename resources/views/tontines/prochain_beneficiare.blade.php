@@ -19,7 +19,7 @@
                 <div class="row text-start mt-3">
                     <div class="col-6">
                         <small class="text-muted">Tour numéro</small>
-                        <div class="fw-bold fs-5"># {{ $prochain->numero_tour }}</div>
+                        <div class="fw-bold fs-5">#{{ $prochain->numero_tour }}</div>
                     </div>
                     <div class="col-6">
                         <small class="text-muted">Date prévue</small>

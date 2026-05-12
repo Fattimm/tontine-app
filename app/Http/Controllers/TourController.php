@@ -10,10 +10,11 @@ class TourController extends Controller
 {
     public function index()
     {
-        $tours = Tour::with(['tontine', 'membre'])
-                     ->orderBy('numero_tour')
-                     ->paginate(15);
+        $query = Tour::with(['tontine', 'membre']);
 
+        if (request('statut')) $query->where('statut', request('statut'));
+
+        $tours = $query->orderBy('numero_tour')->paginate(15);
         return view('tours.index', compact('tours'));
     }
 

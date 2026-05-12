@@ -37,10 +37,26 @@
                     <tbody>
                         @forelse($membres as $m)
                         <tr>
-                            <td><a href="{{ route('membres.show', $m) }}">{{ $m->nom_complet }}</a></td>
+                            <td>
+                                {{-- ✅ Membre supprimé = grisé --}}
+                                @if($m->deleted_at)
+                                    <span class="text-muted fst-italic text-decoration-line-through">
+                                        {{ $m->nom_complet }}
+                                    </span>
+                                    <span class="badge bg-danger-subtle text-danger ms-1">Supprimé</span>
+                                @else
+                                    <a href="{{ route('membres.show', $m) }}">{{ $m->nom_complet }}</a>
+                                @endif
+                            </td>
                             <td>{{ $m->telephone }}</td>
                             <td>{{ \Carbon\Carbon::parse($m->pivot->date_adhesion)->format('d/m/Y') }}</td>
-                            <td><span class="badge bg-success-subtle text-success">{{ $m->pivot->statut }}</span></td>
+                            <td>
+                                @if($m->deleted_at)
+                                    <span class="badge bg-danger-subtle text-danger">Inactif</span>
+                                @else
+                                    <span class="badge bg-success-subtle text-success">{{ $m->pivot->statut }}</span>
+                                @endif
+                            </td>
                         </tr>
                         @empty
                         <tr><td colspan="4" class="text-center text-muted py-3">Aucun membre.</td></tr>

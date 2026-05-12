@@ -14,10 +14,13 @@ class TontineController extends Controller
 
     public function index()
     {
-        $tontines = Tontine::withCount('membres')
-                           ->latest()
-                           ->paginate(10);
+        $query = Tontine::withCount('membres');
 
+        if (request('search'))    $query->where('nom', 'like', '%'.request('search').'%');
+        if (request('statut'))    $query->where('statut', request('statut'));
+        if (request('frequence')) $query->where('frequence', request('frequence'));
+
+        $tontines = $query->latest()->paginate(10);
         return view('tontines.index', compact('tontines'));
     }
 
@@ -48,7 +51,8 @@ class TontineController extends Controller
     public function show(Tontine $tontine)
     {
         $stats    = $this->tontineService->getStats($tontine);
-        $membres  = $tontine->membres()->paginate(10);
+        //$membres  = $tontine->membres()->paginate(10);
+        $membres = $tontine->tousLesMembres()->paginate(10);
 
         return view('tontines.show', compact('tontine', 'stats', 'membres'));
     }
