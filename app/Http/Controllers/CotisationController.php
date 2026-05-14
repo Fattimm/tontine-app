@@ -21,7 +21,7 @@ class CotisationController extends Controller
         if (request('mode_paiement')) $query->where('mode_paiement', request('mode_paiement'));
         if (request('tontine_id'))    $query->where('tontine_id', request('tontine_id'));
 
-        $cotisations = $query->latest('date_paiement')->paginate(15);
+        $cotisations = $query->latest('date_paiement')->paginate(10);
         return view('cotisations.index', compact('cotisations'));
     }
 

@@ -47,24 +47,47 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-success">
     <div class="container-fluid px-4">
-        <a class="navbar-brand" href="{{ route('home') }}">💰 TontineApp</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <a class="navbar-brand" href="{{ route('dashboard') }}">💰 TontineApp</a>
+        <div class="navbar-nav ms-auto d-flex align-items-center gap-2">
+            <span class="navbar-text text-white small">
+                {{ auth()->user()->name }}
+                <span class="badge bg-white text-success ms-1">
+                    {{ ucfirst(auth()->user()->role) }}
+                </span>
+            </span>
+            <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                @csrf
+                <button class="btn btn-outline-light btn-sm">Déconnexion</button>
+            </form>
+        </div>
     </div>
 </nav>
 
 <div class="container-fluid">
 <div class="row">
     <nav class="col-md-2 sidebar py-3 px-3">
-        <p class="text-muted text-uppercase fw-bold" style="font-size:.75rem;letter-spacing:1px">Menu</p>
-        <a href="{{ route('membres.index') }}"    class="nav-link {{ request()->routeIs('membres*')    ? 'active' : '' }}"><span class="icon">👥</span> Membres</a>
-        <a href="{{ route('tontines.index') }}"   class="nav-link {{ request()->routeIs('tontines*')   ? 'active' : '' }}"><span class="icon">💼</span> Tontines</a>
+        <p class="text-muted text-uppercase fw-bold" style="font-size:.75rem">Menu</p>
+
+        @if(auth()->user()->isAdminOrOrganisateur())
+        <a href="{{ route('membres.index') }}"     class="nav-link {{ request()->routeIs('membres*')     ? 'active' : '' }}"><span class="icon">👥</span> Membres</a>
+        <a href="{{ route('tontines.index') }}"    class="nav-link {{ request()->routeIs('tontines*')    ? 'active' : '' }}"><span class="icon">💼</span> Tontines</a>
         <a href="{{ route('cotisations.index') }}" class="nav-link {{ request()->routeIs('cotisations*') ? 'active' : '' }}"><span class="icon">💳</span> Cotisations</a>
-        <a href="{{ route('tours.index') }}"      class="nav-link {{ request()->routeIs('tours*')      ? 'active' : '' }}"><span class="icon">🔄</span> Tours</a>
+        <a href="{{ route('tours.index') }}"       class="nav-link {{ request()->routeIs('tours*')       ? 'active' : '' }}"><span class="icon">🔄</span> Tours</a>
+        @endif
+
+        @if(auth()->user()->isAdmin())
         <hr>
-        <a href="{{ route('cotisations.create') }}" class="nav-link text-success fw-bold"><span class="icon">+</span> Nouvelle cotisation</a>
-        <a href="{{ route('membres.create') }}"     class="nav-link text-success fw-bold"><span class="icon">+</span> Nouveau membre</a>
+        <a href="{{ route('admin.users') }}" class="nav-link {{ request()->routeIs('admin*') ? 'active' : '' }}">
+            <span class="icon">🔑</span> Utilisateurs
+        </a>
+        @endif
+
+        @if(auth()->user()->isMembre())
+        <a href="{{ route('dashboard') }}" class="nav-link"><span class="icon">🏠</span> Mon espace</a>
+        @endif
+
+        <hr>
+        <a href="{{ route('dashboard') }}" class="nav-link"><span class="icon">📊</span> Dashboard</a>
     </nav>
 
     <main class="col-md-10 py-4 px-4">

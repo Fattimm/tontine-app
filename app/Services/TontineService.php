@@ -72,7 +72,7 @@ class TontineService
         return null;
     }
 
-    private function calculerProchaineDate(Tontine $tontine): Carbon
+    public  function calculerProchaineDate(Tontine $tontine): Carbon
     {
         $base = now();
         return match($tontine->frequence) {
@@ -104,5 +104,35 @@ class TontineService
                                                      ->sum('montant'),
             'prochain_beneficiaire' => $this->getProchainBeneficiaire($tontine),
         ];
+    }
+
+    public function tousOntCotiseCeMois(Tontine $tontine): bool
+    {
+        $mois  = now()->month;
+        $annee = now()->year;
+
+        $nbMembres = $tontine->membres()->count();
+
+        if ($nbMembres === 0) return false;
+
+        $nbAyantCotise = \App\Models\Cotisation::where('tontine_id', $tontine->id)
+            ->where('mois', $mois)
+            ->where('annee', $annee)
+            ->where('est_reserve', false)
+            ->where('statut', 'paye')
+            ->distinct('membre_id')
+            ->count('membre_id');
+
+        return $nbAyantCotise >= $nbMembres;
+    }
+
+    public function getMembresEligibles(Tontine $tontine)
+    {
+        return $tontine->membres()
+            ->whereDoesntHave('tours', function ($q) use ($tontine) {
+                $q->where('tontine_id', $tontine->id)
+                ->whereIn('statut', ['complete', 'en_attente']);
+            })
+            ->get();
     }
 }

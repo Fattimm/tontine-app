@@ -61,14 +61,25 @@ class MembreService
      */
     public function getResume(Membre $membre): array
     {
-        $membre->load(['tontines', 'cotisations', 'tours']);
+        // ✅ Charger seulement les tontines non supprimées
+        $membre->load([
+            'tontines' => function ($q) {
+                $q->whereNull('tontines.deleted_at')
+                ->withPivot('date_adhesion', 'statut');
+            },
+            'tours.tontine',
+        ]);
 
+        $cotisationsActives = $membre->cotisations()
+        ->whereHas('tontine', function ($q) {
+            $q->whereNull('deleted_at');
+        });
+        
         return [
-            'membre'            => $membre,
-            'nb_tontines'       => $membre->tontines->count(),
-            'nb_cotisations'    => $membre->cotisations->count(),
-            'tours_completes'   => $membre->tours->where('statut', 'complete')->count(),
-            'tours_en_attente'  => $membre->tours->where('statut', 'en_attente')->count(),
+            'nb_tontines'      => $membre->tontines->count(),
+            'nb_cotisations'   => $membre->cotisations()->count(),
+            'tours_completes'  => $membre->tours->where('statut', 'complete')->count(),
+            'tours_en_attente' => $membre->tours->where('statut', 'en_attente')->count(),
         ];
     }
 }

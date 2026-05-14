@@ -11,7 +11,7 @@ class Tontine extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'nom', 'description', 'montant_cotisation',
+        'nom', 'description', 'nombre_membres_max', 'montant_cotisation',
         'frequence', 'date_debut', 'date_fin', 'statut'
     ];
 
@@ -58,4 +58,19 @@ class Tontine extends Model
                     ->withTrashed(); 
     }
 
+        /**
+     * ✅ Vérifie si la tontine peut encore accepter des membres
+     */
+    public function peutAjouterMembre(): bool
+    {
+        return $this->membres()->count() < $this->nombre_membres_max;
+    }
+
+    /**
+     * ✅ Nombre de places restantes
+     */
+    public function placesRestantes(): int
+    {
+        return max(0, $this->nombre_membres_max - $this->membres()->count());
+    }
 }

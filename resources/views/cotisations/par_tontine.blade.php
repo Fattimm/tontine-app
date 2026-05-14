@@ -17,7 +17,7 @@
                 @forelse($cotisations as $c)
                 <tr>
                     <td><code class="small">{{ $c->reference }}</code></td>
-                    <td><a href="{{ route('membres.show', $c->membre) }}">{{ $c->membre->nom_complet }}</a></td>
+                    <td><a href="{{ route('membres.show', $c->membre->id) }}">{{ $c->membre->nom_complet }}</a></td>
                     <td class="fw-semibold">{{ number_format($c->montant, 0, ',', ' ') }} FCFA</td>
                     <td>{{ $c->date_paiement->format('d/m/Y') }}</td>
                     <td><span class="badge bg-light text-dark border">{{ str_replace('_', ' ', $c->mode_paiement) }}</span></td>

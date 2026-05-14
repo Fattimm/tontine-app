@@ -67,4 +67,50 @@ class MembreController extends Controller
             ->route('membres.index')
             ->with('success', 'Membre supprimé avec succès.');
     }
+
+    /**
+ * ✅ Détail d'un membre dans une tontine spécifique
+ */
+   public function detailTontine(Membre $membre, \App\Models\Tontine $tontine)
+    {
+        // ✅ Bloquer l'accès si la tontine est supprimée
+        if ($tontine->trashed()) {
+            return redirect()
+                ->route('membres.show', $membre)
+                ->with('error', 'Cette tontine a été supprimée.');
+        }
+
+        // Cotisations du membre dans cette tontine uniquement
+        $cotisations = $membre->cotisations()
+                            ->where('tontine_id', $tontine->id)
+                            ->with('tour')
+                            ->latest('date_paiement')
+                            ->paginate(10);
+
+        // Tour du membre dans cette tontine
+        $tour = \App\Models\Tour::where('membre_id', $membre->id)
+                                ->where('tontine_id', $tontine->id)
+                                ->first();
+
+        // ✅ Stats uniquement pour cette tontine non supprimée
+        $totalPaye = $membre->cotisations()
+                            ->where('tontine_id', $tontine->id)
+                            ->where('statut', 'paye')
+                            ->where('est_reserve', false)
+                            ->sum('montant');
+
+        $totalReserve = $membre->cotisations()
+                            ->where('tontine_id', $tontine->id)
+                            ->where('est_reserve', true)
+                            ->sum('montant');
+
+        $pivot = $tontine->tousLesMembres()
+                        ->where('membre_id', $membre->id)
+                        ->first()?->pivot;
+
+        return view('membres.detail_tontine', compact(
+            'membre', 'tontine', 'cotisations',
+            'tour', 'totalPaye', 'totalReserve', 'pivot'
+        ));
+    }
 }

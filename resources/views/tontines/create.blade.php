@@ -19,6 +19,20 @@
                                value="{{ old('nom') }}" placeholder="Ex: Tontine Dakar 2026">
                         @error('nom')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">
+                            Nombre max de membres <span class="text-danger">*</span>
+                        </label>
+                        <input type="number" name="nombre_membres_max"
+                            class="form-control @error('nombre_membres_max') is-invalid @enderror"
+                            value="{{ old('nombre_membres_max', 12) }}"
+                            min="2" max="100"
+                            placeholder="Ex: 12">
+                        <div class="form-text">Entre 2 et 100 membres</div>
+                        @error('nombre_membres_max')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
                     <div class="col-12">
                         <label class="form-label fw-semibold">Description</label>
                         <textarea name="description" class="form-control" rows="2"
