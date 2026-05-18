@@ -49,12 +49,13 @@
     <div class="container-fluid px-4">
         <a class="navbar-brand" href="{{ route('dashboard') }}">💰 TontineApp</a>
         <div class="navbar-nav ms-auto d-flex align-items-center gap-2">
-            <span class="navbar-text text-white small">
+            <a href="{{ route('profil.edit') }}"
+            class="navbar-text text-white text-decoration-none small">
                 {{ auth()->user()->name }}
                 <span class="badge bg-white text-success ms-1">
                     {{ ucfirst(auth()->user()->role) }}
                 </span>
-            </span>
+            </a>
             <form method="POST" action="{{ route('logout') }}" class="d-inline">
                 @csrf
                 <button class="btn btn-outline-light btn-sm">Déconnexion</button>
@@ -68,28 +69,69 @@
     <nav class="col-md-2 sidebar py-3 px-3">
         <p class="text-muted text-uppercase fw-bold" style="font-size:.75rem">Menu</p>
 
-        @if(auth()->user()->isAdminOrOrganisateur())
-        <a href="{{ route('membres.index') }}"     class="nav-link {{ request()->routeIs('membres*')     ? 'active' : '' }}"><span class="icon">👥</span> Membres</a>
-        <a href="{{ route('tontines.index') }}"    class="nav-link {{ request()->routeIs('tontines*')    ? 'active' : '' }}"><span class="icon">💼</span> Tontines</a>
-        <a href="{{ route('cotisations.index') }}" class="nav-link {{ request()->routeIs('cotisations*') ? 'active' : '' }}"><span class="icon">💳</span> Cotisations</a>
-        <a href="{{ route('tours.index') }}"       class="nav-link {{ request()->routeIs('tours*')       ? 'active' : '' }}"><span class="icon">🔄</span> Tours</a>
-        @endif
-
-        @if(auth()->user()->isAdmin())
-        <hr>
-        <a href="{{ route('admin.users') }}" class="nav-link {{ request()->routeIs('admin*') ? 'active' : '' }}">
-            <span class="icon">🔑</span> Utilisateurs
+        {{-- Dashboard pour tous --}}
+        <a href="{{ route('dashboard') }}"
+        class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+            <span class="icon">📊</span> Dashboard
         </a>
+
+        {{-- Admin uniquement --}}
+        @if(auth()->user()->isAdmin())
+            <hr>
+            <p class="text-muted text-uppercase fw-bold" style="font-size:.7rem">Administration</p>
+            <a href="{{ route('admin.users') }}"
+            class="nav-link {{ request()->routeIs('admin*') ? 'active' : '' }}">
+                <span class="icon">🔑</span> Utilisateurs
+            </a>
         @endif
 
+        {{-- Organisateur uniquement --}}
+        @if(auth()->user()->isOrganisateur())
+            <hr>
+            <p class="text-muted text-uppercase fw-bold" style="font-size:.7rem">Gestion</p>
+            <a href="{{ route('membres.index') }}"
+            class="nav-link {{ request()->routeIs('membres*') ? 'active' : '' }}">
+                <span class="icon">👥</span> Membres
+            </a>
+            <a href="{{ route('tontines.index') }}"
+            class="nav-link {{ request()->routeIs('tontines*') ? 'active' : '' }}">
+                <span class="icon">💼</span> Mes tontines
+            </a>
+            <a href="{{ route('cotisations.index') }}"
+            class="nav-link {{ request()->routeIs('cotisations*') ? 'active' : '' }}">
+                <span class="icon">💳</span> Cotisations
+            </a>
+            <a href="{{ route('tours.index') }}"
+            class="nav-link {{ request()->routeIs('tours*') ? 'active' : '' }}">
+                <span class="icon">🔄</span> Tours
+            </a>
+            <hr>
+            <a href="{{ route('membres.create') }}" class="nav-link text-success fw-bold">
+                <span class="icon">+</span> Nouveau membre
+            </a>
+            <a href="{{ route('tontines.create') }}" class="nav-link text-success fw-bold">
+                <span class="icon">+</span> Nouvelle tontine
+            </a>
+            <a href="{{ route('cotisations.create') }}" class="nav-link text-success fw-bold">
+                <span class="icon">+</span> Cotisation
+            </a>
+        @endif
+
+        {{-- Membre uniquement --}}
         @if(auth()->user()->isMembre())
-        <a href="{{ route('dashboard') }}" class="nav-link"><span class="icon">🏠</span> Mon espace</a>
+            <hr>
+            <p class="text-muted text-uppercase fw-bold" style="font-size:.7rem">Mon espace</p>
+            @if(auth()->user()->membre)
+                <a href="{{ route('membres.tontine-detail', [auth()->user()->membre, auth()->user()->membre->tontines()->first()]) }}"
+                class="nav-link">
+                    <span class="icon">💼</span> Mes tontines
+                </a>
+            @endif
+            <a href="{{ route('cotisations.create') }}" class="nav-link text-success fw-bold">
+                <span class="icon">💳</span> Cotiser
+            </a>
         @endif
-
-        <hr>
-        <a href="{{ route('dashboard') }}" class="nav-link"><span class="icon">📊</span> Dashboard</a>
     </nav>
-
     <main class="col-md-10 py-4 px-4">
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show rounded-3">

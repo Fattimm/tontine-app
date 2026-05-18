@@ -92,10 +92,19 @@
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Rôle</label>
                         <select name="role" class="form-select" id="select-role">
-                            <option value="organisateur">Organisateur</option>
-                            <option value="membre">Membre</option>
-                            <option value="admin">Admin</option>
+                            <option value="organisateur">
+                                Organisateur — gère les tontines et membres
+                            </option>
+                            <option value="membre">
+                                Membre — accès à son espace perso
+                            </option>
+                            <option value="admin">
+                                Admin — accès total
+                            </option>
                         </select>
+                        <div class="form-text">
+                            Seul l'admin peut créer des organisateurs.
+                        </div>
                     </div>
                     <div class="mb-3" id="champ-membre">
                         <label class="form-label fw-semibold">Lier à un membre</label>

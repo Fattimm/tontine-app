@@ -14,7 +14,19 @@ class TontineController extends Controller
 
     public function index()
     {
-        $query = Tontine::withCount('membres');
+        $this->authorize('viewAny', Tontine::class);
+
+        $query = Tontine::withCount('membres')
+            // ✅ Organisateur voit SEULEMENT ses tontines
+            ->when(auth()->user()->isOrganisateur(), function ($q) {
+                $q->where('organisateur_id', auth()->id());
+            })
+            // ✅ Membre voit ses tontines
+            ->when(auth()->user()->isMembre(), function ($q) {
+                $q->whereHas('membres', function ($q2) {
+                    $q2->where('membre_id', auth()->user()->membre_id);
+                });
+            });
 
         if (request('search'))    $query->where('nom', 'like', '%'.request('search').'%');
         if (request('statut'))    $query->where('statut', request('statut'));
@@ -24,17 +36,14 @@ class TontineController extends Controller
         return view('tontines.index', compact('tontines'));
     }
 
-    public function create()
-    {
-        return view('tontines.create');
-    }
-
     public function store(\Illuminate\Http\Request $request)
     {
+        $this->authorize('create', Tontine::class);
+
         $data = $request->validate([
             'nom'                => 'required|string|max:150',
+            'nombre_membres_max' => 'required|integer|min:2|max:100',
             'description'        => 'nullable|string',
-            'nombre_membres_max'  => 'required|integer|min:2|max:100',
             'montant_cotisation' => 'required|numeric|min:100',
             'frequence'          => 'required|in:hebdomadaire,mensuel,trimestriel',
             'date_debut'         => 'required|date',
@@ -42,11 +51,19 @@ class TontineController extends Controller
             'statut'             => 'in:active,terminee,suspendue',
         ]);
 
+        // ✅ Lier la tontine à l'organisateur connecté
+        $data['organisateur_id'] = auth()->id();
+
         Tontine::create($data);
 
         return redirect()
             ->route('tontines.index')
             ->with('success', 'Tontine créée avec succès.');
+    }
+
+    public function create()
+    {
+        return view('tontines.create');
     }
 
     public function show(Tontine $tontine)

@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\{
+    AdminController,
     AuthController,
     MembreController,
     TontineController,
@@ -9,29 +10,48 @@ use App\Http\Controllers\{
     TourController
 };
 
-// ✅ Auth
+// =========================================
+// AUTH — public
+// =========================================
 Route::get('/login',  [AuthController::class, 'showLogin'])->name('login')->middleware('guest');
 Route::post('/login', [AuthController::class, 'login'])->middleware('guest');
 Route::post('/logout',[AuthController::class, 'logout'])->name('logout');
 
-// ✅ Dashboard (tous les connectés)
-Route::get('/dashboard', [AuthController::class, 'dashboard'])
-     ->name('dashboard')
-     ->middleware('auth');
-
 Route::get('/', fn() => redirect()->route('dashboard'));
 
-// ✅ Routes admin + organisateur
-Route::middleware(['auth', 'organisateur'])->group(function () {
-    Route::resource('membres',     MembreController::class);
-    Route::resource('tontines',    TontineController::class);
-    Route::resource('cotisations', CotisationController::class)->except(['edit', 'update']);
-    Route::resource('tours',       TourController::class);
+// =========================================
+// TOUS LES CONNECTÉS — auth uniquement
+// =========================================
+Route::middleware('auth')->group(function () {
 
-    Route::get('membres/{membre}/cotisations',
-        [CotisationController::class, 'parMembre'])->name('membres.cotisations');
+    // Dashboard
+    Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
+
+    // ✅ Profil — admin + organisateur + membre
+    Route::get('/profil',    [AuthController::class, 'profilEdit'])->name('profil.edit');
+    Route::patch('/profil',  [AuthController::class, 'profilUpdate'])->name('profil.update');
+
+    // ✅ Membre voit son détail tontine
     Route::get('membres/{membre}/tontines/{tontine}',
         [MembreController::class, 'detailTontine'])->name('membres.tontine-detail');
+
+    // ✅ Membre peut créer sa cotisation
+    Route::get('cotisations/create',  [CotisationController::class, 'create'])->name('cotisations.create');
+    Route::post('cotisations',        [CotisationController::class, 'store'])->name('cotisations.store');
+});
+
+// =========================================
+// ORGANISATEUR + ADMIN — gestion complète
+// =========================================
+Route::middleware(['auth', 'organisateur'])->group(function () {
+
+    // Membres
+    Route::resource('membres', MembreController::class);
+    Route::get('membres/{membre}/cotisations',
+        [CotisationController::class, 'parMembre'])->name('membres.cotisations');
+
+    // Tontines
+    Route::resource('tontines', TontineController::class);
     Route::get('tontines/{tontine}/cotisations',
         [CotisationController::class, 'parTontine'])->name('cotisations.par-tontine');
     Route::get('tontines/{tontine}/prochain-beneficiaire',
@@ -44,12 +64,21 @@ Route::middleware(['auth', 'organisateur'])->group(function () {
         [TontineController::class, 'tirage'])->name('tontines.tirage');
     Route::post('tontines/{tontine}/tirage',
         [TontineController::class, 'executerTirage'])->name('tontines.tirage.executer');
+
+    // Cotisations — index, show, destroy (pas create/store, déjà au dessus)
+    Route::resource('cotisations', CotisationController::class)
+         ->except(['create', 'store', 'edit', 'update']);
+
+    // Tours
+    Route::resource('tours', TourController::class);
 });
 
-// ✅ Routes admin uniquement
+// =========================================
+// ADMIN uniquement
+// =========================================
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/users', [AdminController::class, 'users'])->name('users');
-    Route::post('/users', [AdminController::class, 'createUser'])->name('users.store');
-    Route::patch('/users/{user}/role', [AdminController::class, 'updateRole'])->name('users.role');
-    Route::delete('/users/{user}', [AdminController::class, 'deleteUser'])->name('users.delete');
+    Route::get('/users',                   [AdminController::class, 'users'])->name('users');
+    Route::post('/users',                  [AdminController::class, 'createUser'])->name('users.store');
+    Route::patch('/users/{user}/role',     [AdminController::class, 'updateRole'])->name('users.role');
+    Route::delete('/users/{user}',         [AdminController::class, 'deleteUser'])->name('users.delete');
 });

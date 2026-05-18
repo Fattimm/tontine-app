@@ -68,7 +68,8 @@
                 <div class="col-md-3">
                     <select name="tontine_id" class="form-select form-select-sm" onchange="this.form.submit()">
                         <option value="">Toutes les tontines</option>
-                        @foreach(\App\Models\Tontine::orderBy('nom')->get() as $t)
+                        {{-- ✅ whereNull exclut les soft deleted --}}
+                        @foreach(\App\Models\Tontine::whereNull('deleted_at')->orderBy('nom')->get() as $t)
                             <option value="{{ $t->id }}" {{ request('tontine_id') == $t->id ? 'selected' : '' }}>
                                 {{ $t->nom }}
                             </option>

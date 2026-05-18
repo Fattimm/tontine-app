@@ -9,9 +9,7 @@ use App\Http\Requests\UpdateMembreRequest;
 
 class MembreController extends Controller
 {
-    public function __construct(
-        private MembreService $membreService  // ✅ Injection de dépendance
-    ) {}
+    public function __construct(private MembreService $membreService) {}
 
     /**
      * Liste des membres avec recherche
@@ -26,16 +24,31 @@ class MembreController extends Controller
 
     public function create()
     {
-        return view('membres.create');
+        // ✅ Seulement les tontines actives avec des places disponibles
+        $tontines = \App\Models\Tontine::where('statut', 'active')
+                                        ->orderBy('nom')
+                                        ->get();
+
+        return view('membres.create', compact('tontines'));
     }
 
     public function store(StoreMembreRequest $request)
     {
-        $this->membreService->creer($request->validated());
+        try {
+            $resultat = $this->membreService->creer($request->validated());
 
-        return redirect()
-            ->route('membres.index')
-            ->with('success', 'Membre ajouté avec succès.');
+            // ✅ Stocker le mot de passe en session pour l'afficher UNE seule fois
+            session()->flash('nouveau_membre', [
+                'nom'          => $resultat['membre']->nom_complet,
+                'email'        => $resultat['user']->email,
+                'mot_de_passe' => $resultat['mot_de_passe'],
+            ]);
+
+            return redirect()->route('membres.index');
+
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
     }
 
     public function show(Membre $membre)

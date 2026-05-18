@@ -15,13 +15,16 @@ class CotisationController extends Controller
 
     public function index()
     {
-        $query = Cotisation::with(['membre', 'tontine', 'tour']);
+        $query = Cotisation::with(['membre', 'tontine', 'tour'])
+            ->whereHas('tontine', function ($q) {
+                $q->whereNull('deleted_at');
+            });
 
         if (request('statut'))        $query->where('statut', request('statut'));
         if (request('mode_paiement')) $query->where('mode_paiement', request('mode_paiement'));
         if (request('tontine_id'))    $query->where('tontine_id', request('tontine_id'));
 
-        $cotisations = $query->latest('date_paiement')->paginate(10);
+        $cotisations = $query->latest('date_paiement')->paginate(15);
         return view('cotisations.index', compact('cotisations'));
     }
 

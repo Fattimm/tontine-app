@@ -126,22 +126,27 @@ class CotisationService
         });
     }
 
-    public function getCotisationsParMembre(Membre $membre, int $perPage = 10): LengthAwarePaginator
-    {
-        return $membre->cotisations()
-                      ->with(['tontine', 'tour'])
-                      ->latest('date_paiement')
-                      ->paginate($perPage);
-    }
-
     public function getTotalCotise(Membre $membre): float
     {
         return (float) $membre->cotisations()->where('statut', 'paye')->sum('montant');
     }
 
+    public function getCotisationsParMembre(Membre $membre, int $perPage = 10): LengthAwarePaginator
+    {
+        return $membre->cotisations()
+                    ->whereHas('tontine', function ($q) {
+                        $q->whereNull('deleted_at'); // ✅
+                    })
+                    ->with(['tontine', 'tour'])
+                    ->latest('date_paiement')
+                    ->paginate($perPage);
+    }
+
     public function getStatsMembre(Membre $membre): array
     {
-        $cotisations = $membre->cotisations();
+        $cotisations = $membre->cotisations()
+                            ->whereHas('tontine', fn($q) => $q->whereNull('deleted_at'));
+
         return [
             'total_paye'       => (float) (clone $cotisations)->where('statut', 'paye')->sum('montant'),
             'total_en_attente' => (float) (clone $cotisations)->where('statut', 'en_attente')->sum('montant'),

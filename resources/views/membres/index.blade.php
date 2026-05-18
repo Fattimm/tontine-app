@@ -2,6 +2,33 @@
 @section('title', 'Membres')
 
 @section('content')
+{{-- ✅ Affichage mot de passe temporaire après création --}}
+@if(session('nouveau_membre'))
+@php $nm = session('nouveau_membre'); @endphp
+<div class="alert alert-success border-success shadow-sm mb-4">
+    <h5 class="fw-bold">✅ Membre créé avec succès !</h5>
+    <p class="mb-1">Communiquez ces identifiants au membre :</p>
+    <div class="bg-white rounded p-3 border mt-2">
+        <div class="row g-2">
+            <div class="col-md-4">
+                <span class="text-muted small d-block">Nom</span>
+                <strong>{{ $nm['nom'] }}</strong>
+            </div>
+            <div class="col-md-4">
+                <span class="text-muted small d-block">Email / Login</span>
+                <strong>{{ $nm['email'] }}</strong>
+            </div>
+            <div class="col-md-4">
+                <span class="text-muted small d-block">Mot de passe temporaire</span>
+                <strong class="text-danger fs-5">{{ $nm['mot_de_passe'] }}</strong>
+            </div>
+        </div>
+    </div>
+    <p class="text-muted small mt-2 mb-0">
+        ⚠️ Ce mot de passe ne sera plus affiché. Notez-le maintenant.
+    </p>
+</div>
+@endif
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h4 class="mb-0 fw-bold">👥 Membres</h4>

@@ -34,6 +34,9 @@ class StoreMembreRequest extends FormRequest
             ],
             'adresse'   => ['nullable', 'string', 'max:255'],
             'statut'    => ['sometimes', 'in:actif,inactif'],
+            'tontine_id' => $this->isMethod('POST')
+                ? ['required', 'exists:tontines,id']
+                : ['nullable', 'exists:tontines,id'],
         ];
     }
 

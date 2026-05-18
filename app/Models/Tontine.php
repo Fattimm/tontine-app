@@ -11,23 +11,57 @@ class Tontine extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'nom', 'description', 'nombre_membres_max', 'montant_cotisation',
-        'frequence', 'date_debut', 'date_fin', 'statut'
+        'organisateur_id',
+        'nom',
+        'nombre_membres_max',
+        'description',
+        'montant_cotisation',
+        'frequence',
+        'date_debut',
+        'date_fin',
+        'statut',
     ];
 
     protected $casts = [
-        'date_debut' => 'date',
-        'date_fin'   => 'date',
+        'date_debut'         => 'date',
+        'date_fin'           => 'date',
         'montant_cotisation' => 'decimal:2',
     ];
+
+    // ✅ Soft delete cascade
+    protected static function booted(): void
+    {
+        static::deleting(function (Tontine $tontine) {
+            $tontine->cotisations()->delete();
+            $tontine->tours()->delete();
+        });
+
+        static::restoring(function (Tontine $tontine) {
+            $tontine->cotisations()->withTrashed()->restore();
+            $tontine->tours()->withTrashed()->restore();
+        });
+    }
+
+    // Relations
+    public function organisateur()
+    {
+        return $this->belongsTo(User::class, 'organisateur_id');
+    }
 
     public function membres()
     {
         return $this->belongsToMany(Membre::class, 'membre_tontine')
                     ->withPivot('date_adhesion', 'statut')
                     ->withTimestamps()
-                    ->wherePivot('statut', 'actif') 
-                    ->whereNull('membres.deleted_at'); 
+                    ->whereNull('membres.deleted_at');
+    }
+
+    public function tousLesMembres()
+    {
+        return $this->belongsToMany(Membre::class, 'membre_tontine')
+                    ->withPivot('date_adhesion', 'statut')
+                    ->withTimestamps()
+                    ->withTrashed();
     }
 
     public function cotisations()
@@ -40,7 +74,6 @@ class Tontine extends Model
         return $this->hasMany(Tour::class)->orderBy('numero_tour');
     }
 
-    // ✅ Méthode métier : prochain bénéficiaire
     public function prochainBeneficiaire(): ?Tour
     {
         return $this->tours()
@@ -50,25 +83,11 @@ class Tontine extends Model
                     ->first();
     }
 
-    public function tousLesMembres()
-    {
-        return $this->belongsToMany(Membre::class, 'membre_tontine')
-                    ->withPivot('date_adhesion', 'statut')
-                    ->withTimestamps()
-                    ->withTrashed(); 
-    }
-
-        /**
-     * ✅ Vérifie si la tontine peut encore accepter des membres
-     */
     public function peutAjouterMembre(): bool
     {
         return $this->membres()->count() < $this->nombre_membres_max;
     }
 
-    /**
-     * ✅ Nombre de places restantes
-     */
     public function placesRestantes(): int
     {
         return max(0, $this->nombre_membres_max - $this->membres()->count());

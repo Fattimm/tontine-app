@@ -43,4 +43,10 @@ class Membre extends Model
     {
         return $query->where('statut', 'actif');
     }
+
+    // ✅ Relation vers le compte utilisateur
+    public function user()
+    {
+        return $this->hasOne(User::class);
+    }
 }

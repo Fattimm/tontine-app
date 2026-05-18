@@ -7,37 +7,35 @@ use App\Models\User;
 
 class MembrePolicy
 {
-    public function before(User $user): ?bool
+    public function before(User $user, string $ability): ?bool
     {
-        if ($user->isAdmin()) return true;
+        if ($user->isAdmin()) return false; // Admin pas accès membres
         return null;
     }
 
     public function viewAny(User $user): bool
     {
-        return $user->isAdminOrOrganisateur();
+        return $user->isOrganisateur();
     }
 
     public function view(User $user, Membre $membre): bool
     {
-        if ($user->isAdminOrOrganisateur()) return true;
-        // Membre voit seulement son propre profil
+        if ($user->isOrganisateur()) return true;
         return $user->membre_id === $membre->id;
     }
 
     public function create(User $user): bool
     {
-        return $user->isAdminOrOrganisateur();
+        return $user->isOrganisateur();
     }
 
     public function update(User $user, Membre $membre): bool
     {
-        if ($user->isAdminOrOrganisateur()) return true;
-        return $user->membre_id === $membre->id;
+        return $user->isOrganisateur();
     }
 
     public function delete(User $user, Membre $membre): bool
     {
-        return $user->isAdminOrOrganisateur();
+        return $user->isOrganisateur();
     }
 }

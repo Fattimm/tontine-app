@@ -4,71 +4,77 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="fw-bold mb-0">🛡️ Dashboard Administrateur</h4>
-    <span class="badge bg-danger">Admin</span>
+    <span class="badge bg-danger px-3 py-2">Admin</span>
 </div>
 
+{{-- ✅ Stats globales sans tontines --}}
 <div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="card text-center border-success">
-            <div class="card-body py-3">
-                <div class="fs-2 fw-bold text-success">{{ $nbMembres }}</div>
-                <div class="text-muted small">Membres</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
+    <div class="col-md-4">
         <div class="card text-center border-primary">
-            <div class="card-body py-3">
-                <div class="fs-2 fw-bold text-primary">{{ $nbTontines }}</div>
-                <div class="text-muted small">Tontines</div>
+            <div class="card-body py-4">
+                <div class="fs-1 fw-bold text-primary">{{ $nbUsers }}</div>
+                <div class="text-muted">Utilisateurs</div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-center border-warning">
-            <div class="card-body py-3">
-                <div class="fs-2 fw-bold text-warning">{{ $nbCotisations }}</div>
-                <div class="text-muted small">Cotisations</div>
+    <div class="col-md-4">
+        <div class="card text-center border-success">
+            <div class="card-body py-4">
+                <div class="fs-1 fw-bold text-success">{{ $nbOrganisateurs }}</div>
+                <div class="text-muted">Organisateurs</div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-center border-secondary">
-            <div class="card-body py-3">
-                <div class="fs-2 fw-bold text-secondary">{{ $nbUsers }}</div>
-                <div class="text-muted small">Utilisateurs</div>
+    <div class="col-md-4">
+        <div class="card text-center border-info">
+            <div class="card-body py-4">
+                <div class="fs-1 fw-bold text-info">{{ $nbMembresUsers }}</div>
+                <div class="text-muted">Comptes membres</div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row g-3">
-    <div class="col-md-4">
-        <a href="{{ route('membres.index') }}" class="card text-decoration-none">
-            <div class="card-body d-flex align-items-center gap-3">
-                <span class="fs-2">👥</span>
-                <div><div class="fw-semibold">Gérer les membres</div>
-                <div class="text-muted small">Créer, modifier, supprimer</div></div>
+{{-- Actions admin --}}
+<div class="card">
+    <div class="card-header bg-white fw-semibold">Actions</div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <a href="{{ route('admin.users') }}"
+                   class="card text-decoration-none border-primary h-100">
+                    <div class="card-body d-flex align-items-center gap-3">
+                        <span class="fs-2">🔑</span>
+                        <div>
+                            <div class="fw-semibold">Gérer les utilisateurs</div>
+                            <div class="text-muted small">Créer organisateurs et membres</div>
+                        </div>
+                    </div>
+                </a>
             </div>
-        </a>
-    </div>
-    <div class="col-md-4">
-        <a href="{{ route('tontines.index') }}" class="card text-decoration-none">
-            <div class="card-body d-flex align-items-center gap-3">
-                <span class="fs-2">💼</span>
-                <div><div class="fw-semibold">Gérer les tontines</div>
-                <div class="text-muted small">Créer et administrer</div></div>
+            <div class="col-md-4">
+                <div class="card border-0 bg-light h-100">
+                    <div class="card-body d-flex align-items-center gap-3">
+                        <span class="fs-2">🚫</span>
+                        <div>
+                            <div class="fw-semibold text-muted">Tontines</div>
+                            <div class="text-muted small">Gérées par les organisateurs</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </a>
-    </div>
-    <div class="col-md-4">
-        <a href="{{ route('admin.users') }}" class="card text-decoration-none">
-            <div class="card-body d-flex align-items-center gap-3">
-                <span class="fs-2">🔑</span>
-                <div><div class="fw-semibold">Gérer les utilisateurs</div>
-                <div class="text-muted small">Rôles et accès</div></div>
+            <div class="col-md-4">
+                <div class="card border-0 bg-light h-100">
+                    <div class="card-body d-flex align-items-center gap-3">
+                        <span class="fs-2">🚫</span>
+                        <div>
+                            <div class="fw-semibold text-muted">Membres</div>
+                            <div class="text-muted small">Gérés par les organisateurs</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </a>
+        </div>
     </div>
 </div>
 @endsection

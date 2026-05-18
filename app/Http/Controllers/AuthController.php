@@ -49,10 +49,9 @@ class AuthController extends Controller
 
         if ($user->isAdmin()) {
             return view('dashboard.admin', [
-                'nbMembres'     => \App\Models\Membre::count(),
-                'nbTontines'    => \App\Models\Tontine::count(),
-                'nbCotisations' => \App\Models\Cotisation::count(),
-                'nbUsers'       => User::count(),
+                'nbUsers'          => User::count(),
+                'nbOrganisateurs'  => User::where('role', 'organisateur')->count(),
+                'nbMembresUsers'   => User::where('role', 'membre')->count(),
             ]);
         }
 
@@ -67,5 +66,33 @@ class AuthController extends Controller
         // Membre → son espace perso
         $membre = $user->membre;
         return view('dashboard.membre', compact('membre'));
+    }
+
+    public function profilEdit()
+    {
+        return view('profil.edit');
+    }
+
+    public function profilUpdate(Request $request)
+    {
+        $request->validate([
+            'ancien_mot_de_passe' => 'required',
+            'mot_de_passe'        => 'required|min:6|confirmed',
+        ], [
+            'ancien_mot_de_passe.required' => 'L\'ancien mot de passe est obligatoire.',
+            'mot_de_passe.required'        => 'Le nouveau mot de passe est obligatoire.',
+            'mot_de_passe.min'             => 'Minimum 6 caractères.',
+            'mot_de_passe.confirmed'       => 'La confirmation ne correspond pas.',
+        ]);
+
+        if (!Hash::check($request->ancien_mot_de_passe, auth()->user()->password)) {
+            return back()->with('error', 'Ancien mot de passe incorrect.');
+        }
+
+        auth()->user()->update([
+            'password' => Hash::make($request->mot_de_passe),
+        ]);
+
+        return back()->with('success', 'Mot de passe mis à jour.');
     }
 }

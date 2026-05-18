@@ -5,20 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\SoftDeletes;       
 
 class Cotisation extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'membre_id', 'tontine_id', 'tour_id',
         'montant', 'date_paiement', 'mode_paiement',
-        'statut', 'reference', 'notes'
+        'statut', 'reference', 'notes','est_reserve',
+        'mois', 'annee', 
     ];
 
     protected $casts = [
         'date_paiement' => 'date',
         'montant' => 'decimal:2',
+        'est_reserve'   => 'boolean',
     ];
 
     // ✅ Génère automatiquement une référence unique
@@ -38,7 +41,7 @@ class Cotisation extends Model
 
     public function tontine()
     {
-        return $this->belongsTo(Tontine::class);
+        return $this->belongsTo(Tontine::class)->withTrashed();
     }
 
     public function tour()
