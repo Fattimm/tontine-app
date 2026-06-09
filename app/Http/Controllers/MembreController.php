@@ -4,12 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\Membre;
 use App\Services\MembreService;
+use App\Services\TontineService;
 use App\Http\Requests\StoreMembreRequest;
 use App\Http\Requests\UpdateMembreRequest;
 
 class MembreController extends Controller
 {
-    public function __construct(private MembreService $membreService) {}
+    public function __construct(
+        private MembreService  $membreService,
+        private TontineService $tontineService,
+    ) {}
 
     /**
      * Liste des membres avec recherche
@@ -24,10 +28,7 @@ class MembreController extends Controller
 
     public function create()
     {
-        // ✅ Seulement les tontines actives avec des places disponibles
-        $tontines = \App\Models\Tontine::where('statut', 'active')
-                                        ->orderBy('nom')
-                                        ->get();
+        $tontines = $this->tontineService->getTontinesActives();
 
         return view('membres.create', compact('tontines'));
     }
@@ -37,11 +38,10 @@ class MembreController extends Controller
         try {
             $resultat = $this->membreService->creer($request->validated());
 
-            // ✅ Stocker le mot de passe en session pour l'afficher UNE seule fois
             session()->flash('nouveau_membre', [
-                'nom'          => $resultat['membre']->nom_complet,
-                'email'        => $resultat['user']->email,
-                'mot_de_passe' => $resultat['mot_de_passe'],
+                'nom'       => $resultat['membre']->nom_complet,
+                'email'     => $resultat['user']->email,
+                'reset_url' => $resultat['reset_url'],
             ]);
 
             return redirect()->route('membres.index');
@@ -74,56 +74,54 @@ class MembreController extends Controller
 
     public function destroy(Membre $membre)
     {
-        $this->membreService->supprimer($membre);
+        try {
+            $this->membreService->supprimer($membre);
+            return redirect()->route('membres.index')->with('success', 'Membre supprimé.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
 
-        return redirect()
-            ->route('membres.index')
-            ->with('success', 'Membre supprimé avec succès.');
+    public function supprimes()
+    {
+        $membres = $this->membreService->getSupprimees();
+
+        return view('membres.supprimes', compact('membres'));
+    }
+
+    public function restaurer(int $id)
+    {
+        $membre = $this->membreService->restaurer($id);
+
+        return back()->with('success', $membre->nom_complet . ' a été restauré avec succès.');
+    }
+
+    public function regenererLien(Membre $membre)
+    {
+        if (!$membre->user) {
+            return back()->with('error', 'Ce membre n\'a pas de compte utilisateur.');
+        }
+
+        $resetUrl = $this->membreService->regenererLien($membre);
+
+        return back()->with('reset_url_regenere', $resetUrl);
     }
 
     /**
  * ✅ Détail d'un membre dans une tontine spécifique
  */
-   public function detailTontine(Membre $membre, \App\Models\Tontine $tontine)
+    public function detailTontine(Membre $membre, \App\Models\Tontine $tontine)
     {
-        // ✅ Bloquer l'accès si la tontine est supprimée
         if ($tontine->trashed()) {
-            return redirect()
-                ->route('membres.show', $membre)
+            return redirect()->route('membres.show', $membre)
                 ->with('error', 'Cette tontine a été supprimée.');
         }
 
-        // Cotisations du membre dans cette tontine uniquement
-        $cotisations = $membre->cotisations()
-                            ->where('tontine_id', $tontine->id)
-                            ->with('tour')
-                            ->latest('date_paiement')
-                            ->paginate(10);
+        $detail = $this->membreService->getDetailTontine($membre, $tontine);
 
-        // Tour du membre dans cette tontine
-        $tour = \App\Models\Tour::where('membre_id', $membre->id)
-                                ->where('tontine_id', $tontine->id)
-                                ->first();
-
-        // ✅ Stats uniquement pour cette tontine non supprimée
-        $totalPaye = $membre->cotisations()
-                            ->where('tontine_id', $tontine->id)
-                            ->where('statut', 'paye')
-                            ->where('est_reserve', false)
-                            ->sum('montant');
-
-        $totalReserve = $membre->cotisations()
-                            ->where('tontine_id', $tontine->id)
-                            ->where('est_reserve', true)
-                            ->sum('montant');
-
-        $pivot = $tontine->tousLesMembres()
-                        ->where('membre_id', $membre->id)
-                        ->first()?->pivot;
-
-        return view('membres.detail_tontine', compact(
-            'membre', 'tontine', 'cotisations',
-            'tour', 'totalPaye', 'totalReserve', 'pivot'
+        return view('membres.detail_tontine', array_merge(
+            compact('membre', 'tontine'),
+            $detail
         ));
     }
 }

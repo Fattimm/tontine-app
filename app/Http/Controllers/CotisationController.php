@@ -2,63 +2,73 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{Cotisation, Membre, Tontine, Tour};
+use App\Models\Cotisation;
+use App\Models\Membre;
+use App\Models\Tontine;
 use App\Services\CotisationService;
+use App\Services\TontineService;
 use App\Http\Requests\StoreCotisationRequest;
 
 class CotisationController extends Controller
 {
     public function __construct(
         private CotisationService $cotisationService,
-        private \App\Services\TontineService $tontineService  
+        private TontineService    $tontineService,
     ) {}
 
     public function index()
     {
-        $query = Cotisation::with(['membre', 'tontine', 'tour'])
-            ->whereHas('tontine', function ($q) {
-                $q->whereNull('deleted_at');
-            });
+        $filtres     = request()->only(['statut', 'mode_paiement', 'tontine_id']);
+        $cotisations = $this->cotisationService->getListe($filtres);
 
-        if (request('statut'))        $query->where('statut', request('statut'));
-        if (request('mode_paiement')) $query->where('mode_paiement', request('mode_paiement'));
-        if (request('tontine_id'))    $query->where('tontine_id', request('tontine_id'));
-
-        $cotisations = $query->latest('date_paiement')->paginate(15);
         return view('cotisations.index', compact('cotisations'));
     }
 
     public function create()
     {
-        $membres  = Membre::actifs()->orderBy('nom')->get();
-        $tontines = Tontine::where('statut', 'active')->orderBy('nom')->get();
-        $tours    = Tour::where('statut', 'en_attente')
-                        ->with('tontine')
-                        ->orderBy('numero_tour')
-                        ->get();
+        $user = auth()->user();
 
-        return view('cotisations.create', compact('membres', 'tontines', 'tours'));
+        if ($user->isMembre() && $user->membre) {
+            $monMembre = $user->membre;
+            $membres   = collect([$monMembre]);
+            $tontines  = $monMembre->tontines()
+                ->where('tontines.statut', 'active')
+                ->where(function ($q) {
+                    $q->whereNull('tontines.date_fin')
+                      ->orWhere('tontines.date_fin', '>=', today());
+                })
+                ->orderBy('nom')->get();
+        } else {
+            $monMembre = null;
+            $membres   = Membre::actifs()->orderBy('nom')->get();
+            $tontines  = $this->tontineService->getTontinesActives();
+        }
+
+        return view('cotisations.create', compact('membres', 'tontines', 'monMembre'));
     }
 
     public function store(StoreCotisationRequest $request)
     {
-        $resultat = $this->cotisationService->enregistrer($request->validated());
+        $validated = $request->validated();
+
+        // Sécurité : un membre ne peut cotiser que pour lui-même
+        $user = auth()->user();
+        if ($user->isMembre() && $user->membre) {
+            $validated['membre_id'] = $user->membre->id;
+        }
+
+        $resultat = $this->cotisationService->enregistrer($validated);
 
         if (!$resultat['succes']) {
             return back()->withInput()->with('error', $resultat['message']);
         }
 
-        // ✅ Vérifier si le tirage doit être déclenché
-        $tontine  = \App\Models\Tontine::find($request->tontine_id);
-        $tirage   = $this->tontineService->verifierEtTirer($tontine);
+        $type     = $resultat['reserve'] ? 'warning' : 'success';
+        $redirect = auth()->user()->isMembre()
+            ? redirect()->route('dashboard')
+            : redirect()->route('cotisations.index');
 
-        $message  = $resultat['message'];
-        if ($tirage) {
-            $message .= ' 🎉 Tirage effectué ! Bénéficiaire : ' . $tirage->membre->nom_complet;
-        }
-
-        $type = $resultat['reserve'] ? 'warning' : 'success';
-        return redirect()->route('cotisations.index')->with($type, $message);
+        return $redirect->with($type, $resultat['message']);
     }
 
     public function show(Cotisation $cotisation)
@@ -93,8 +103,22 @@ class CotisationController extends Controller
 
     public function destroy(Cotisation $cotisation)
     {
-        $cotisation->delete();
+        $this->cotisationService->supprimer($cotisation);
 
         return back()->with('success', 'Cotisation supprimée.');
+    }
+
+    public function supprimees()
+    {
+        $cotisations = $this->cotisationService->getSupprimees(auth()->user());
+
+        return view('cotisations.supprimees', compact('cotisations'));
+    }
+
+    public function restaurer(int $id)
+    {
+        $this->cotisationService->restaurer($id, auth()->user());
+
+        return back()->with('success', 'Cotisation restaurée avec succès.');
     }
 }

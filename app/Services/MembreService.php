@@ -3,8 +3,11 @@
 namespace App\Services;
 
 use App\Models\Membre;
+use App\Models\Tontine;
+use App\Models\Tour;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -38,9 +41,6 @@ class MembreService
         $tontineId = $data['tontine_id'] ?? null;
         unset($data['tontine_id']);
 
-        // ✅ Générer mot de passe temporaire
-        $motDePasseTemp = Str::random(8);
-
         // Créer le membre
         $membre = Membre::create([
             'nom'       => $data['nom'],
@@ -51,14 +51,20 @@ class MembreService
             'statut'    => 'actif',
         ]);
 
-        // ✅ Créer automatiquement le compte user lié
+        $emailUser = $data['email'] ?? ($data['telephone'] . '@tontine.sn');
+
+        // Mot de passe aléatoire non partagé — le membre le définira via le lien
         $user = User::create([
             'name'      => $membre->nom_complet,
-            'email'     => $data['email'] ?? ($data['telephone'] . '@tontine.sn'),
-            'password'  => Hash::make($motDePasseTemp),
+            'email'     => $emailUser,
+            'password'  => Hash::make(Str::random(32)),
             'role'      => 'membre',
             'membre_id' => $membre->id,
         ]);
+
+        // Générer le lien de définition du mot de passe (valable 7 jours)
+        $token    = Password::broker()->createToken($user);
+        $resetUrl = url('/reset-password?token=' . $token . '&email=' . urlencode($emailUser));
 
         // ✅ Attacher à la tontine
         if ($tontineId) {
@@ -78,9 +84,9 @@ class MembreService
         }
 
         return [
-            'membre'          => $membre,
-            'user'            => $user,
-            'mot_de_passe'    => $motDePasseTemp, // ✅ à afficher une seule fois
+            'membre'    => $membre,
+            'user'      => $user,
+            'reset_url' => $resetUrl,
         ];
     }
 
@@ -101,13 +107,67 @@ class MembreService
 
     public function supprimer(Membre $membre): bool
     {
-        // ✅ Désactiver aussi le compte user
+        if ($membre->cotisations()->exists()) {
+            throw new \Exception(
+                $membre->nom_complet . ' a des cotisations enregistrées et ne peut pas être supprimé.'
+            );
+        }
+
         if ($membre->user) {
-            $membre->user->update(['role' => 'membre']);
             $membre->user->delete();
         }
 
         return $membre->delete();
+    }
+
+    public function regenererLien(Membre $membre): string
+    {
+        $user  = $membre->user;
+        $token = Password::broker()->createToken($user);
+        return url('/reset-password?token=' . $token . '&email=' . urlencode($user->email));
+    }
+
+    public function getSupprimees(int $perPage = 15): LengthAwarePaginator
+    {
+        return Membre::onlyTrashed()->latest('deleted_at')->paginate($perPage);
+    }
+
+    public function restaurer(int $id): Membre
+    {
+        $membre = Membre::onlyTrashed()->findOrFail($id);
+        $membre->restore();
+        User::withTrashed()->where('membre_id', $membre->id)->restore();
+        return $membre;
+    }
+
+    public function getDetailTontine(Membre $membre, Tontine $tontine): array
+    {
+        $cotisations = $membre->cotisations()
+            ->where('tontine_id', $tontine->id)
+            ->with('tour')
+            ->latest('date_paiement')
+            ->paginate(10);
+
+        $tour = Tour::where('membre_id', $membre->id)
+            ->where('tontine_id', $tontine->id)
+            ->first();
+
+        $totalPaye = $membre->cotisations()
+            ->where('tontine_id', $tontine->id)
+            ->where('statut', 'paye')
+            ->where('est_reserve', false)
+            ->sum('montant');
+
+        $totalReserve = $membre->cotisations()
+            ->where('tontine_id', $tontine->id)
+            ->where('est_reserve', true)
+            ->sum('montant');
+
+        $pivot = $tontine->tousLesMembres()
+            ->where('membre_id', $membre->id)
+            ->first()?->pivot;
+
+        return compact('cotisations', 'tour', 'totalPaye', 'totalReserve', 'pivot');
     }
 
     public function getResume(Membre $membre): array

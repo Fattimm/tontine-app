@@ -71,7 +71,10 @@
                 Voir toutes les cotisations du membre
             </a>
             <form action="{{ route('cotisations.destroy', $cotisation) }}" method="POST"
-                  class="d-inline" onsubmit="return confirm('Supprimer cette cotisation ?')">
+                  class="d-inline" data-confirm="Supprimer cette cotisation ? Cette action est irréversible."
+                  data-confirm-titre="Supprimer la cotisation"
+                  data-confirm-type="danger"
+                  data-confirm-btn="Oui, supprimer">
                 @csrf @method('DELETE')
                 <button class="btn btn-outline-danger btn-sm">Supprimer</button>
             </form>

@@ -1,80 +1,79 @@
 @extends('layouts.app')
-@section('title', 'Tours')
+@section('title', 'Tours & Tirages')
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0 fw-bold">🔄 Tours</h4>
-        <small class="text-muted">{{ $tours->total() }} tour(s)</small>
+        <h4 class="mb-0 fw-bold">🔄 Tours & Tirages</h4>
+        <small class="text-muted">{{ $tontines->total() }} tontine(s)</small>
     </div>
-    <a href="{{ route('tours.create') }}" class="btn btn-success btn-sm">+ Nouveau tour</a>
 </div>
-
-{{-- ✅ FILTRE ICI --}}
-<x-filtres
-    :route="route('tours.index')"
-    :champs="['statut_tour']"
-/>
 
 <div class="card">
     <div class="card-body p-0">
         <table class="table table-hover mb-0">
             <thead>
                 <tr>
-                    <th>#</th>
                     <th>Tontine</th>
-                    <th>Bénéficiaire</th>
-                    <th>Date prévue</th>
-                    <th>Montant reçu</th>
+                    <th>Fréquence</th>
+                    <th>Tours effectués</th>
+                    <th>Prochain bénéficiaire</th>
                     <th>Statut</th>
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse($tours as $tour)
+                @forelse($tontines as $tontine)
+                @php
+                    $prochain = $tontine->prochainBeneficiaire();
+                @endphp
                 <tr>
-                    <td class="text-muted small">{{ $tour->numero_tour }}</td>
-                    <td>{{ $tour->tontine->nom }}</td>
+                    <td class="fw-semibold">{{ $tontine->nom }}</td>
+                    <td>{{ ucfirst($tontine->frequence) }}</td>
                     <td>
-                        <a href="{{ route('membres.show', $tour->membre) }}">
-                            {{ $tour->membre->nom_complet }}
-                        </a>
+                        <span class="badge bg-light text-dark border">
+                            {{ $tontine->tours_completes }} / {{ $tontine->membres_count }}
+                        </span>
+                        @if($tontine->membres_count > 0)
+                            <div class="progress mt-1 progress-xs">
+                                <div class="progress-bar bg-success"
+                                     style="width:{{ ($tontine->tours_completes / $tontine->membres_count) * 100 }}%">
+                                </div>
+                            </div>
+                        @endif
                     </td>
-                    <td>{{ $tour->date_prevue->format('d/m/Y') }}</td>
                     <td>
-                        {{ $tour->montant_recu
-                            ? number_format($tour->montant_recu, 0, ',', ' ') . ' FCFA'
-                            : '—' }}
-                    </td>
-                    <td>
-                        @if($tour->statut === 'complete')
-                            <span class="badge bg-success-subtle text-success">Complété</span>
-                        @elseif($tour->statut === 'reporte')
-                            <span class="badge bg-warning-subtle text-warning">Reporté</span>
+                        @if($prochain)
+                            <span class="fw-semibold text-primary">{{ $prochain->membre->nom_complet }}</span>
+                            <div class="text-muted small">Tour n°{{ $prochain->numero_tour }}</div>
+                        @elseif($tontine->tours_count === 0)
+                            <span class="text-muted small">Aucun tirage encore</span>
                         @else
-                            <span class="badge bg-info-subtle text-info">En attente</span>
+                            <span class="text-muted small">—</span>
+                        @endif
+                    </td>
+                    <td>
+                        @if($tontine->statut === 'active')
+                            <span class="badge bg-success-subtle text-success">Active</span>
+                        @elseif($tontine->statut === 'terminee')
+                            <span class="badge bg-secondary-subtle text-secondary">Terminée</span>
+                        @else
+                            <span class="badge bg-warning-subtle text-warning">Suspendue</span>
                         @endif
                     </td>
                     <td class="text-end">
-                        <a href="{{ route('tours.show', $tour) }}"
-                           class="btn btn-outline-info btn-action">Voir</a>
-                        <a href="{{ route('tours.edit', $tour) }}"
-                           class="btn btn-outline-warning btn-action">Modifier</a>
-                        <form action="{{ route('tours.destroy', $tour) }}" method="POST"
-                              class="d-inline"
-                              onsubmit="return confirm('Supprimer ce tour ?')">
-                            @csrf @method('DELETE')
-                            <button class="btn btn-outline-danger btn-action">Supprimer</button>
-                        </form>
+                        <a href="{{ route('tontines.tirage', $tontine) }}"
+                           class="btn btn-success btn-action fw-semibold">
+                            🎲 Gérer les tirages
+                        </a>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center text-muted py-4">
-                        Aucun tour enregistré.
-                        <span class="text-muted small d-block mt-1">
-                            Les tours se génèrent automatiquement après cotisation complète.
-                        </span>
+                    <td colspan="6" class="text-center text-muted py-5">
+                        <div class="fs-1 mb-2">🔄</div>
+                        Aucune tontine trouvée.
+                        <a href="{{ route('tontines.create') }}" class="d-block mt-1">Créer une tontine</a>
                     </td>
                 </tr>
                 @endforelse
@@ -84,6 +83,6 @@
 </div>
 
 <div class="mt-3 d-flex justify-content-center">
-    {{ $tours->withQueryString()->links() }}
+    {{ $tontines->links() }}
 </div>
 @endsection

@@ -2,6 +2,39 @@
 @section('title', $membre->nom_complet)
 
 @section('content')
+@php
+    $tokenEnAttente = $membre->user
+        ? \Illuminate\Support\Facades\DB::table('password_reset_tokens')
+            ->where('email', $membre->user->email)->exists()
+        : false;
+@endphp
+
+{{-- Lien régénéré --}}
+@if(session('reset_url_regenere'))
+<div class="alert alert-info shadow-sm mb-4">
+    <h6 class="fw-bold mb-2">🔗 Nouveau lien généré</h6>
+    <div class="d-flex gap-2 align-items-start flex-wrap">
+        <code class="text-break small flex-grow-1" id="reset-link-regen">{{ session('reset_url_regenere') }}</code>
+        <button class="btn btn-outline-secondary btn-sm flex-shrink-0"
+                onclick="navigator.clipboard.writeText(document.getElementById('reset-link-regen').textContent).then(() => this.textContent = '✅ Copié')">
+            📋 Copier
+        </button>
+    </div>
+    <p class="text-muted small mt-2 mb-0">Valable 7 jours.</p>
+</div>
+@elseif($tokenEnAttente)
+<div class="alert alert-warning shadow-sm mb-4 d-flex justify-content-between align-items-center gap-3 flex-wrap">
+    <div>
+        <strong>⚠️ Compte non activé</strong>
+        <div class="small text-muted">Ce membre n'a pas encore défini son mot de passe.</div>
+    </div>
+    <form action="{{ route('membres.regenerer-lien', $membre) }}" method="POST" class="flex-shrink-0">
+        @csrf
+        <button class="btn btn-warning btn-sm fw-semibold">🔗 Regénérer le lien</button>
+    </form>
+</div>
+@endif
+
 <div class="d-flex align-items-center mb-4 gap-2">
     <a href="{{ route('membres.index') }}" class="btn btn-sm btn-outline-secondary">← Retour</a>
     <h4 class="mb-0 fw-bold">{{ $membre->nom_complet }}</h4>

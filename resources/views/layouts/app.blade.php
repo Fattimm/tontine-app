@@ -5,44 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'TontineApp')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background-color: #f8f9fa; }
-        .navbar-brand { font-weight: 700; letter-spacing: 1px; }
-        .sidebar { min-height: calc(100vh - 56px); background: #fff; border-right: 1px solid #dee2e6; }
-        .sidebar .nav-link { color: #495057; border-radius: 8px; margin-bottom: 4px; }
-        .sidebar .nav-link:hover, .sidebar .nav-link.active { background: #e8f5e9; color: #198754; }
-        .sidebar .nav-link .icon { width: 20px; display: inline-block; text-align: center; }
-        .card { border: none; box-shadow: 0 1px 4px rgba(0,0,0,.08); border-radius: 12px; }
-        .table thead th { background: #f1f5f9; font-weight: 600; font-size:.85rem; text-transform:uppercase; letter-spacing:.5px; }
-        .btn-action { padding: 3px 10px; font-size:.8rem; border-radius: 6px; }
-
-        /* ✅ Pagination custom */
-        .pagination { gap: 4px; }
-        .pagination .page-item .page-link {
-            border-radius: 8px !important;
-            border: 1px solid #dee2e6;
-            color: #198754;
-            padding: 6px 12px;
-            font-size: .85rem;
-            transition: all .2s;
-        }
-        .pagination .page-item.active .page-link {
-            background-color: #198754;
-            border-color: #198754;
-            color: #fff;
-        }
-        .pagination .page-item.disabled .page-link { color: #adb5bd; }
-        .pagination .page-item .page-link:hover:not(.active) {
-            background-color: #e8f5e9;
-            border-color: #198754;
-        }
-        /* Flèches précédent/suivant */
-        .pagination .page-item:first-child .page-link,
-        .pagination .page-item:last-child .page-link {
-            font-weight: 600;
-            padding: 6px 14px;
-        }
-    </style>
+    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-success">
@@ -67,7 +30,7 @@
 <div class="container-fluid">
 <div class="row">
     <nav class="col-md-2 sidebar py-3 px-3">
-        <p class="text-muted text-uppercase fw-bold" style="font-size:.75rem">Menu</p>
+        <p class="text-muted text-uppercase fw-bold sidebar-title">Menu</p>
 
         {{-- Dashboard pour tous --}}
         <a href="{{ route('dashboard') }}"
@@ -78,27 +41,35 @@
         {{-- Admin uniquement --}}
         @if(auth()->user()->isAdmin())
             <hr>
-            <p class="text-muted text-uppercase fw-bold" style="font-size:.7rem">Administration</p>
+            <p class="text-muted text-uppercase fw-bold sidebar-section">Administration</p>
             <a href="{{ route('admin.users') }}"
-            class="nav-link {{ request()->routeIs('admin*') ? 'active' : '' }}">
+            class="nav-link {{ request()->routeIs('admin.users') ? 'active' : '' }}">
                 <span class="icon">🔑</span> Utilisateurs
+            </a>
+            <a href="{{ route('admin.users.supprimes') }}"
+            class="nav-link {{ request()->routeIs('admin.users.supprimes') ? 'active' : '' }}">
+                <span class="icon">🗑️</span> Corbeille
+                @php $nbSupp = \App\Models\User::onlyTrashed()->count(); @endphp
+                @if($nbSupp > 0)
+                    <span class="badge bg-danger ms-1">{{ $nbSupp }}</span>
+                @endif
             </a>
         @endif
 
         {{-- Organisateur uniquement --}}
         @if(auth()->user()->isOrganisateur())
             <hr>
-            <p class="text-muted text-uppercase fw-bold" style="font-size:.7rem">Gestion</p>
+            <p class="text-muted text-uppercase fw-bold sidebar-section">Gestion</p>
             <a href="{{ route('membres.index') }}"
-            class="nav-link {{ request()->routeIs('membres*') ? 'active' : '' }}">
+            class="nav-link {{ request()->routeIs('membres.index') || request()->routeIs('membres.create') || request()->routeIs('membres.show') || request()->routeIs('membres.edit') ? 'active' : '' }}">
                 <span class="icon">👥</span> Membres
             </a>
             <a href="{{ route('tontines.index') }}"
-            class="nav-link {{ request()->routeIs('tontines*') ? 'active' : '' }}">
+            class="nav-link {{ request()->routeIs('tontines.index') || request()->routeIs('tontines.show') || request()->routeIs('tontines.create') || request()->routeIs('tontines.edit') || request()->routeIs('tontines.tirage') ? 'active' : '' }}">
                 <span class="icon">💼</span> Mes tontines
             </a>
             <a href="{{ route('cotisations.index') }}"
-            class="nav-link {{ request()->routeIs('cotisations*') ? 'active' : '' }}">
+            class="nav-link {{ request()->routeIs('cotisations.index') || request()->routeIs('cotisations.show') ? 'active' : '' }}">
                 <span class="icon">💳</span> Cotisations
             </a>
             <a href="{{ route('tours.index') }}"
@@ -106,21 +77,41 @@
                 <span class="icon">🔄</span> Tours
             </a>
             <hr>
-            <a href="{{ route('membres.create') }}" class="nav-link text-success fw-bold">
-                <span class="icon">+</span> Nouveau membre
+            <p class="text-muted text-uppercase fw-bold sidebar-section">Corbeille</p>
+            @php
+                $nbMembresSupp    = \App\Models\Membre::onlyTrashed()->count();
+                $nbTontinesSupp   = \App\Models\Tontine::onlyTrashed()->where('organisateur_id', auth()->id())->count();
+                $nbCotisSupp      = \App\Models\Cotisation::onlyTrashed()
+                    ->whereHas('tontine', fn($q) => $q->withTrashed()->where('organisateur_id', auth()->id()))
+                    ->count();
+            @endphp
+            <a href="{{ route('membres.supprimes') }}"
+            class="nav-link {{ request()->routeIs('membres.supprimes') ? 'active' : '' }}">
+                <span class="icon">👥</span> Membres
+                @if($nbMembresSupp > 0)
+                    <span class="badge bg-danger ms-1">{{ $nbMembresSupp }}</span>
+                @endif
             </a>
-            <a href="{{ route('tontines.create') }}" class="nav-link text-success fw-bold">
-                <span class="icon">+</span> Nouvelle tontine
+            <a href="{{ route('tontines.supprimees') }}"
+            class="nav-link {{ request()->routeIs('tontines.supprimees') ? 'active' : '' }}">
+                <span class="icon">💼</span> Tontines
+                @if($nbTontinesSupp > 0)
+                    <span class="badge bg-danger ms-1">{{ $nbTontinesSupp }}</span>
+                @endif
             </a>
-            <a href="{{ route('cotisations.create') }}" class="nav-link text-success fw-bold">
-                <span class="icon">+</span> Cotisation
+            <a href="{{ route('cotisations.supprimees') }}"
+            class="nav-link {{ request()->routeIs('cotisations.supprimees') ? 'active' : '' }}">
+                <span class="icon">💳</span> Cotisations
+                @if($nbCotisSupp > 0)
+                    <span class="badge bg-danger ms-1">{{ $nbCotisSupp }}</span>
+                @endif
             </a>
         @endif
 
         {{-- Membre uniquement --}}
         @if(auth()->user()->isMembre())
             <hr>
-            <p class="text-muted text-uppercase fw-bold" style="font-size:.7rem">Mon espace</p>
+            <p class="text-muted text-uppercase fw-bold sidebar-section">Mon espace</p>
             @if(auth()->user()->membre)
                 <a href="{{ route('membres.tontine-detail', [auth()->user()->membre, auth()->user()->membre->tontines()->first()]) }}"
                 class="nav-link">
@@ -163,6 +154,63 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+{{-- Modal de confirmation réutilisable --}}
+<div class="modal fade" id="modalConfirm" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-1">
+                <h6 class="modal-title fw-bold" id="modalConfirmTitre">Confirmation</h6>
+                <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body py-2 text-muted small" id="modalConfirmMessage">
+                Êtes-vous sûr de vouloir continuer ?
+            </div>
+            <div class="modal-footer border-0 pt-1 gap-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm px-3"
+                        data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-sm px-3 fw-semibold"
+                        id="modalConfirmBtn">Confirmer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const modalEl  = document.getElementById('modalConfirm');
+    const modal    = new bootstrap.Modal(modalEl);
+    const titre    = document.getElementById('modalConfirmTitre');
+    const message  = document.getElementById('modalConfirmMessage');
+    const btn      = document.getElementById('modalConfirmBtn');
+    let   cible    = null;
+
+    document.addEventListener('submit', function (e) {
+        const form = e.target;
+        if (!form.dataset.confirm) return;
+
+        e.preventDefault();
+
+        titre.textContent   = form.dataset.confirmTitre   || 'Confirmation';
+        message.textContent = form.dataset.confirm;
+        btn.className       = 'btn btn-sm px-3 fw-semibold btn-' + (form.dataset.confirmType || 'danger');
+        btn.textContent     = form.dataset.confirmBtn     || 'Confirmer';
+        cible               = form;
+
+        modal.show();
+    });
+
+    btn.addEventListener('click', function () {
+        modal.hide();
+        if (cible) {
+            const tmp = cible;
+            cible = null;
+            tmp.submit();
+        }
+    });
+}());
+</script>
+
 @stack('scripts')
 </body>
 </html>

@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use App\Models\User;
+use App\Http\Requests\LoginRequest;
 
 class AuthController extends Controller
 {
@@ -14,17 +16,11 @@ class AuthController extends Controller
         return view('auth.login');
     }
 
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $credentials = $request->validate([
-            'email'    => 'required|email',
-            'password' => 'required',
-        ], [
-            'email.required'    => 'L\'email est obligatoire.',
-            'password.required' => 'Le mot de passe est obligatoire.',
-        ]);
+        $credentials = $request->only('email', 'password');
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             return redirect()->intended(route('dashboard'));
         }
@@ -66,6 +62,62 @@ class AuthController extends Controller
         // Membre → son espace perso
         $membre = $user->membre;
         return view('dashboard.membre', compact('membre'));
+    }
+
+    public function showResetForm(Request $request)
+    {
+        return view('auth.reset-password', [
+            'token' => $request->token,
+            'email' => $request->email,
+        ]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token'                 => 'required',
+            'email'                 => 'required|email',
+            'password'              => 'required|min:6|confirmed',
+        ], [
+            'password.required'  => 'Le mot de passe est obligatoire.',
+            'password.min'       => 'Minimum 6 caractères.',
+            'password.confirmed' => 'La confirmation ne correspond pas.',
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->update(['password' => Hash::make($password)]);
+            }
+        );
+
+        if ($status === Password::PASSWORD_RESET) {
+            return redirect()->route('login')
+                ->with('success', 'Mot de passe défini avec succès. Vous pouvez vous connecter.');
+        }
+
+        return back()->withErrors(['email' => 'Ce lien est invalide ou a expiré.']);
+    }
+
+    public function showForgotForm()
+    {
+        return view('auth.forgot-password');
+    }
+
+    public function sendResetLink(Request $request)
+    {
+        $request->validate(['email' => 'required|email'], [
+            'email.required' => 'L\'adresse email est obligatoire.',
+            'email.email'    => 'L\'adresse email n\'est pas valide.',
+        ]);
+
+        $status = Password::sendResetLink($request->only('email'));
+
+        if ($status === Password::RESET_LINK_SENT) {
+            return back()->with('success', 'Un lien de réinitialisation a été envoyé à votre adresse email.');
+        }
+
+        return back()->withErrors(['email' => 'Aucun compte trouvé avec cette adresse email.']);
     }
 
     public function profilEdit()

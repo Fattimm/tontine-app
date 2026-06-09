@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion — TontineApp</title>
+    <title>Mot de passe oublié — TontineApp</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 </head>
@@ -13,7 +13,7 @@
         <div class="text-center mb-4">
             <div class="fs-1">💰</div>
             <h4 class="fw-bold">TontineApp</h4>
-            <p class="text-muted small">Connectez-vous à votre espace</p>
+            <p class="text-muted small">Entrez votre email pour recevoir un lien de réinitialisation</p>
         </div>
 
         @if(session('success'))
@@ -26,10 +26,10 @@
         </div>
         @endif
 
-        <form method="POST" action="{{ route('login') }}">
+        <form method="POST" action="{{ route('password.email') }}">
             @csrf
             <div class="mb-3">
-                <label class="form-label fw-semibold">Email</label>
+                <label class="form-label fw-semibold">Adresse email</label>
                 <input type="email" name="email"
                        class="form-control @error('email') is-invalid @enderror"
                        value="{{ old('email') }}"
@@ -37,24 +37,14 @@
                 @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
-            <div class="mb-3">
-                <label class="form-label fw-semibold">Mot de passe</label>
-                <input type="password" name="password"
-                       class="form-control @error('password') is-invalid @enderror"
-                       placeholder="••••••••">
-                @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
-
-            <div class="d-flex justify-content-end mb-3">
-                <a href="{{ route('password.request') }}" class="small text-muted">
-                    Mot de passe oublié ?
-                </a>
-            </div>
-
-            <button type="submit" class="btn btn-success w-100 fw-bold">
-                Se connecter
+            <button type="submit" class="btn btn-success w-100 fw-bold mb-3">
+                Envoyer le lien
             </button>
         </form>
+
+        <div class="text-center">
+            <a href="{{ route('login') }}" class="small text-muted">← Retour à la connexion</a>
+        </div>
     </div>
 </div>
 </body>

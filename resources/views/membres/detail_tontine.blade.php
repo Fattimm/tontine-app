@@ -3,21 +3,30 @@
 
 @section('content')
 
+@php $estMembre = auth()->user()->isMembre(); @endphp
+
 {{-- Breadcrumb --}}
 <nav class="mb-4">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item">
-            <a href="{{ route('membres.index') }}">Membres</a>
-        </li>
-        <li class="breadcrumb-item">
-            <a href="{{ route('membres.show', $membre) }}">{{ $membre->nom_complet }}</a>
-        </li>
+        @if($estMembre)
+            <li class="breadcrumb-item">
+                <a href="{{ route('dashboard') }}">Mon espace</a>
+            </li>
+        @else
+            <li class="breadcrumb-item">
+                <a href="{{ route('membres.index') }}">Membres</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{{ route('membres.show', $membre) }}">{{ $membre->nom_complet }}</a>
+            </li>
+        @endif
         <li class="breadcrumb-item active">{{ $tontine->nom }}</li>
     </ol>
 </nav>
 
 <div class="d-flex align-items-center mb-4 gap-2">
-    <a href="{{ route('membres.show', $membre) }}" class="btn btn-sm btn-outline-secondary">← Retour</a>
+    <a href="{{ $estMembre ? route('dashboard') : route('membres.show', $membre) }}"
+       class="btn btn-sm btn-outline-secondary">← Retour</a>
     <h4 class="mb-0 fw-bold">{{ $membre->nom_complet }}</h4>
     <span class="text-muted">dans</span>
     <h4 class="mb-0 fw-bold text-success">{{ $tontine->nom }}</h4>
@@ -103,12 +112,14 @@
                     {{ $pivot ? \Carbon\Carbon::parse($pivot->date_adhesion)->format('d/m/Y') : '—' }}
                 </p>
             </div>
+            @if(!$estMembre)
             <div class="card-footer bg-white">
                 <a href="{{ route('tontines.show', $tontine) }}"
                    class="btn btn-outline-success btn-sm w-100">
                     Voir la tontine →
                 </a>
             </div>
+            @endif
         </div>
 
         {{-- Statut tour --}}
@@ -141,7 +152,7 @@
                             Montant attendu :
                             <strong>
                                 {{ number_format(
-                                    $tontine->montant_cotisation * $tontine->membres()->count(),
+                                    $tontine->montant_gain ?? ($tontine->montant_cotisation * $tontine->membres()->count()),
                                     0, ',', ' '
                                 ) }} FCFA
                             </strong>

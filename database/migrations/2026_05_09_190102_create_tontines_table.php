@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('nom');
             $table->text('description')->nullable();
             $table->decimal('montant_cotisation', 10, 2);
-            $table->enum('frequence', ['hebdomadaire', 'mensuel', 'trimestriel']);
+            $table->enum('frequence', ['quotidien', 'hebdomadaire', 'mensuel', 'trimestriel']);
             $table->date('date_debut');
             $table->date('date_fin')->nullable();
             $table->enum('statut', ['active', 'terminee', 'suspendue'])->default('active');

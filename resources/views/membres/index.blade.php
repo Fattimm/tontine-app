@@ -2,30 +2,29 @@
 @section('title', 'Membres')
 
 @section('content')
-{{-- ✅ Affichage mot de passe temporaire après création --}}
 @if(session('nouveau_membre'))
 @php $nm = session('nouveau_membre'); @endphp
 <div class="alert alert-success border-success shadow-sm mb-4">
     <h5 class="fw-bold">✅ Membre créé avec succès !</h5>
-    <p class="mb-1">Communiquez ces identifiants au membre :</p>
+    <p class="mb-1">Partagez ce lien d'activation à <strong>{{ $nm['nom'] }}</strong> :</p>
     <div class="bg-white rounded p-3 border mt-2">
-        <div class="row g-2">
-            <div class="col-md-4">
-                <span class="text-muted small d-block">Nom</span>
-                <strong>{{ $nm['nom'] }}</strong>
-            </div>
-            <div class="col-md-4">
-                <span class="text-muted small d-block">Email / Login</span>
-                <strong>{{ $nm['email'] }}</strong>
-            </div>
-            <div class="col-md-4">
-                <span class="text-muted small d-block">Mot de passe temporaire</span>
-                <strong class="text-danger fs-5">{{ $nm['mot_de_passe'] }}</strong>
+        <div class="mb-2">
+            <span class="text-muted small d-block">Email / Login</span>
+            <strong>{{ $nm['email'] }}</strong>
+        </div>
+        <div>
+            <span class="text-muted small d-block">Lien de définition du mot de passe</span>
+            <div class="d-flex gap-2 align-items-start mt-1 flex-wrap">
+                <code class="text-break small flex-grow-1" id="reset-link-new">{{ $nm['reset_url'] }}</code>
+                <button class="btn btn-outline-secondary btn-sm flex-shrink-0"
+                        onclick="navigator.clipboard.writeText(document.getElementById('reset-link-new').textContent).then(() => this.textContent = '✅ Copié')">
+                    📋 Copier
+                </button>
             </div>
         </div>
     </div>
     <p class="text-muted small mt-2 mb-0">
-        ⚠️ Ce mot de passe ne sera plus affiché. Notez-le maintenant.
+        ⚠️ Ce lien est valable <strong>7 jours</strong>. Vous pouvez en regénérer un depuis la fiche du membre.
     </p>
 </div>
 @endif
@@ -67,9 +66,9 @@
                     <td class="text-muted small">{{ $membre->email ?? '—' }}</td>
                     <td>
                         @if($membre->statut === 'actif')
-                            <span class="badge badge-statut-actif">Actif</span>
+                            <span class="badge bg-success-subtle text-success">Actif</span>
                         @else
-                            <span class="badge badge-statut-inactif">Inactif</span>
+                            <span class="badge bg-secondary-subtle text-secondary">Inactif</span>
                         @endif
                     </td>
                     <td>
@@ -86,7 +85,10 @@
                            class="btn btn-outline-secondary btn-action">Cotisations</a>
                         <form action="{{ route('membres.destroy', $membre) }}" method="POST"
                               class="d-inline"
-                              onsubmit="return confirm('Supprimer {{ $membre->nom_complet }} ?')">
+                              data-confirm="Supprimer {{ $membre->nom_complet }} ? Cette action est irréversible."
+                              data-confirm-titre="Supprimer le membre"
+                              data-confirm-type="danger"
+                              data-confirm-btn="Oui, supprimer">
                             @csrf @method('DELETE')
                             <button class="btn btn-outline-danger btn-action">Supprimer</button>
                         </form>

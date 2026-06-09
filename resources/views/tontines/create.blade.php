@@ -39,17 +39,27 @@
                                   placeholder="Description optionnelle...">{{ old('description') }}</textarea>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Montant cotisation (FCFA) <span class="text-danger">*</span></label>
-                        <input type="number" name="montant_cotisation"
+                        <label class="form-label fw-semibold">Montant à cotiser / période (FCFA) <span class="text-danger">*</span></label>
+                        <input type="number" name="montant_cotisation" id="montant_cotisation"
                                class="form-control @error('montant_cotisation') is-invalid @enderror"
-                               value="{{ old('montant_cotisation') }}" placeholder="Ex: 25000" min="100">
+                               value="{{ old('montant_cotisation') }}" placeholder="Ex: 5000" min="100">
+                        <div class="form-text">Ce que chaque membre paie par période</div>
                         @error('montant_cotisation')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Montant du gain / tirage (FCFA) <span class="text-danger">*</span></label>
+                        <input type="number" name="montant_gain" id="montant_gain"
+                               class="form-control @error('montant_gain') is-invalid @enderror"
+                               value="{{ old('montant_gain') }}" placeholder="Calculé automatiquement" min="100">
+                        <div class="form-text text-success" id="gain-calcul"></div>
+                        @error('montant_gain')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Fréquence <span class="text-danger">*</span></label>
                         <select name="frequence" class="form-select @error('frequence') is-invalid @enderror">
-                            <option value="mensuel"      {{ old('frequence') === 'mensuel'      ? 'selected' : '' }}>Mensuel</option>
+                            <option value="quotidien"    {{ old('frequence') === 'quotidien'    ? 'selected' : '' }}>Quotidien</option>
                             <option value="hebdomadaire" {{ old('frequence') === 'hebdomadaire' ? 'selected' : '' }}>Hebdomadaire</option>
+                            <option value="mensuel"      {{ old('frequence') === 'mensuel'      ? 'selected' : '' }}>Mensuel</option>
                             <option value="trimestriel"  {{ old('frequence') === 'trimestriel'  ? 'selected' : '' }}>Trimestriel</option>
                         </select>
                         @error('frequence')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -77,4 +87,31 @@
     </div>
 </div>
 </div>
+@push('scripts')
+<script>
+(function () {
+    const cotis  = document.getElementById('montant_cotisation');
+    const nbMax  = document.querySelector('[name="nombre_membres_max"]');
+    const gain   = document.getElementById('montant_gain');
+    const info   = document.getElementById('gain-calcul');
+
+    function calculer() {
+        const c = parseFloat(cotis.value) || 0;
+        const n = parseInt(nbMax.value)   || 0;
+        if (c > 0 && n > 0) {
+            const total = c * n;
+            gain.value  = total;
+            info.textContent = c.toLocaleString('fr-FR') + ' × ' + n + ' membres = ' + total.toLocaleString('fr-FR') + ' FCFA';
+        } else {
+            info.textContent = '';
+        }
+    }
+
+    cotis.addEventListener('input', calculer);
+    nbMax.addEventListener('input', calculer);
+    calculer();
+}());
+</script>
+@endpush
+
 @endsection

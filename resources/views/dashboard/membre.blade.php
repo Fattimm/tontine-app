@@ -129,7 +129,7 @@
                     <p class="text-muted small mb-1">{{ $prochainTour->tontine->nom }}</p>
                     <p class="fw-bold text-success">
                         {{ number_format(
-                            $prochainTour->tontine->montant_cotisation * $prochainTour->tontine->membres()->count(),
+                            $prochainTour->tontine->montant_gain ?? ($prochainTour->tontine->montant_cotisation * $prochainTour->tontine->membres()->count()),
                             0, ',', ' '
                         ) }} FCFA
                     </p>

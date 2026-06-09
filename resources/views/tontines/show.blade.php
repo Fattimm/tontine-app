@@ -5,14 +5,26 @@
 <div class="d-flex align-items-center mb-4 gap-2">
     <a href="{{ route('tontines.index') }}" class="btn btn-sm btn-outline-secondary">← Retour</a>
     <h4 class="mb-0 fw-bold">{{ $tontine->nom }}</h4>
-    <span class="badge bg-success-subtle text-success">{{ ucfirst($tontine->statut) }}</span>
+    @if($tontine->statut === 'active')
+        <span class="badge bg-success-subtle text-success">Active</span>
+    @elseif($tontine->statut === 'terminee')
+        <span class="badge bg-secondary-subtle text-secondary">Terminée</span>
+    @else
+        <span class="badge bg-warning-subtle text-warning">Suspendue</span>
+    @endif
 </div>
 
 <div class="row g-3 mb-4">
     <div class="col-md-3"><div class="card text-center"><div class="card-body py-3">
         <div class="fs-4 fw-bold text-success">{{ number_format($tontine->montant_cotisation, 0, ',', ' ') }}</div>
-        <div class="text-muted small">FCFA / cotisation</div>
+        <div class="text-muted small">FCFA / {{ $tontine->frequence }}</div>
     </div></div></div>
+    @if($tontine->montant_gain)
+    <div class="col-md-3"><div class="card text-center border-warning"><div class="card-body py-3">
+        <div class="fs-4 fw-bold text-warning">{{ number_format($tontine->montant_gain, 0, ',', ' ') }}</div>
+        <div class="text-muted small">FCFA gain / tirage</div>
+    </div></div></div>
+    @endif
     <div class="col-md-3"><div class="card text-center"><div class="card-body py-3">
         <div class="fs-4 fw-bold text-primary">
             {{ $stats['nb_membres'] }}
@@ -20,7 +32,7 @@
         </div>
         <div class="text-muted small">Membres</div>
         {{-- ✅ Barre de progression --}}
-        <div class="progress mt-2" style="height:6px">
+        <div class="progress mt-2 progress-sm">
             <div class="progress-bar bg-primary"
                 style="width: {{ ($stats['nb_membres'] / $tontine->nombre_membres_max) * 100 }}%">
             </div>
@@ -72,44 +84,31 @@
                                 {{ ($membres->currentPage() - 1) * $membres->perPage() + $loop->iteration }}
                             </td>
                             <td>
-                                @if($m->deleted_at)
-                                    <span class="text-muted fst-italic text-decoration-line-through">
-                                        {{ $m->nom_complet }}
-                                    </span>
-                                    <span class="badge bg-danger-subtle text-danger ms-1">Supprimé</span>
-                                @else
-                                    <a href="{{ route('membres.show', $m) }}">
-                                        {{ $m->nom_complet }}
-                                    </a>
-                                @endif
+                                <a href="{{ route('membres.show', $m) }}">{{ $m->nom_complet }}</a>
                             </td>
                             <td>{{ $m->telephone }}</td>
                             <td class="text-muted small">
                                 {{ \Carbon\Carbon::parse($m->pivot->date_adhesion)->format('d/m/Y') }}
                             </td>
                             <td>
-                                @if($m->deleted_at)
-                                    <span class="badge bg-danger-subtle text-danger">Supprimé</span>
-                                @elseif($m->pivot->statut === 'actif')
+                                @if($m->pivot->statut === 'actif')
                                     <span class="badge bg-success-subtle text-success">Actif</span>
                                 @else
                                     <span class="badge bg-warning-subtle text-warning">Suspendu</span>
                                 @endif
                             </td>
                             <td class="text-end">
-                                @if(!$m->deleted_at)
-                                    {{-- ✅ Voir détail membre dans cette tontine --}}
-                                    <a href="{{ route('membres.tontine-detail', [$m, $tontine]) }}"
-                                    class="btn btn-outline-info btn-action">Détail</a>
-
-                                    {{-- ✅ Retirer le membre --}}
-                                    <form action="{{ route('tontines.retirer-membre', [$tontine, $m]) }}"
-                                        method="POST" class="d-inline"
-                                        onsubmit="return confirm('Retirer {{ $m->nom_complet }} de cette tontine ?')">
-                                        @csrf @method('DELETE')
-                                        <button class="btn btn-outline-danger btn-action">Retirer</button>
-                                    </form>
-                                @endif
+                                <a href="{{ route('membres.tontine-detail', [$m, $tontine]) }}"
+                                   class="btn btn-outline-info btn-action">Détail</a>
+                                <form action="{{ route('tontines.retirer-membre', [$tontine, $m]) }}"
+                                    method="POST" class="d-inline"
+                                    data-confirm="Retirer {{ $m->nom_complet }} de cette tontine ?"
+                                    data-confirm-titre="Retirer le membre"
+                                    data-confirm-type="warning"
+                                    data-confirm-btn="Oui, retirer">
+                                    @csrf @method('DELETE')
+                                    <button class="btn btn-outline-danger btn-action">Retirer</button>
+                                </form>
                             </td>
                         </tr>
                         @empty
@@ -137,29 +136,28 @@
         <div class="card border-success">
             <div class="card-header bg-white fw-semibold">Actions rapides</div>
             <div class="card-body d-grid gap-2">
-                {{-- ✅ Bouton tirage conditionnel --}}
-                @php
-                    $pret = app(\App\Services\TontineService::class)->tousOntCotiseCeMois($tontine);
-                @endphp
-
-                @if($pret)
-                    <a href="{{ route('tontines.tirage', $tontine) }}"
-                    class="btn btn-success fw-bold">
-                        🎲 Lancer le tirage du mois
-                    </a>
-                @else
-                    <a href="{{ route('tontines.tirage', $tontine) }}"
-                    class="btn btn-outline-secondary">
-                        🎲 Voir le tirage
-                    </a>
+                @if($tontine->statut === 'suspendue')
+                    <div class="alert alert-warning mb-0 py-2 px-3 small text-center">
+                        ⏸ Tontine suspendue — prolongez la date de fin pour la relancer
+                        <div class="mt-2">
+                            <a href="{{ route('tontines.edit', $tontine) }}"
+                               class="btn btn-warning btn-sm">Modifier la date</a>
+                        </div>
+                    </div>
+                @elseif($tontine->statut === 'terminee')
+                    <div class="alert alert-secondary mb-0 py-2 px-3 small text-center">
+                        ✅ Tontine terminée — tous les membres ont bénéficié
+                    </div>
                 @endif
 
                 <a href="{{ route('cotisations.par-tontine', $tontine) }}"
                    class="btn btn-outline-primary">💳 Voir les cotisations</a>
                 <a href="{{ route('cotisations.create') }}"
                    class="btn btn-outline-success">+ Enregistrer cotisation</a>
+                @can('update', $tontine)
                 <a href="{{ route('tontines.edit', $tontine) }}"
                    class="btn btn-outline-warning">✏️ Modifier</a>
+                @endcan
             </div>
         </div>
 

@@ -3,25 +3,26 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tour;
-use App\Models\Tontine;
-use App\Models\Membre;
+use App\Services\TontineService;
+use App\Services\TourService;
 
 class TourController extends Controller
 {
+    public function __construct(
+        private TontineService $tontineService,
+        private TourService    $tourService,
+    ) {}
+
     public function index()
     {
-        $query = Tour::with(['tontine', 'membre']);
+        $tontines = $this->tourService->getListe(auth()->user());
 
-        if (request('statut')) $query->where('statut', request('statut'));
-
-        $tours = $query->orderBy('numero_tour')->paginate(15);
-        return view('tours.index', compact('tours'));
+        return view('tours.index', compact('tontines'));
     }
 
     public function create()
     {
-        $tontines = Tontine::where('statut', 'active')->get();
-        $membres  = Membre::actifs()->orderBy('nom')->get();
+        ['tontines' => $tontines, 'membres' => $membres] = $this->tourService->getFormData();
 
         return view('tours.create', compact('tontines', 'membres'));
     }
@@ -36,7 +37,7 @@ class TourController extends Controller
             'statut'      => 'in:en_attente,complete,reporte',
         ]);
 
-        Tour::create($data);
+        $this->tourService->creer($data);
 
         return redirect()
             ->route('tours.index')
@@ -52,8 +53,7 @@ class TourController extends Controller
 
     public function edit(Tour $tour)
     {
-        $tontines = Tontine::where('statut', 'active')->get();
-        $membres  = Membre::actifs()->orderBy('nom')->get();
+        ['tontines' => $tontines, 'membres' => $membres] = $this->tourService->getFormData();
 
         return view('tours.edit', compact('tour', 'tontines', 'membres'));
     }
@@ -69,7 +69,7 @@ class TourController extends Controller
             'statut'          => 'in:en_attente,complete,reporte',
         ]);
 
-        $tour->update($data);
+        $this->tourService->modifier($tour, $data);
 
         return redirect()
             ->route('tours.index')
@@ -78,10 +78,29 @@ class TourController extends Controller
 
     public function destroy(Tour $tour)
     {
-        $tour->delete();
+        $this->tourService->supprimer($tour);
 
         return redirect()
             ->route('tours.index')
             ->with('success', 'Tour supprimé.');
+    }
+
+    public function confirmer(Tour $tour)
+    {
+        ['tontine' => $tontine, 'montant' => $montant] = $this->tourService->confirmer($tour);
+
+        $this->tontineService->verifierEtTerminer($tontine);
+        $tontine->refresh();
+
+        $message = $tour->membre->nom_complet . ' a bien reçu ' .
+            number_format($montant, 0, ',', ' ') . ' FCFA.';
+
+        if ($tontine->statut === 'terminee') {
+            $message .= ' Tous les membres ont bénéficié — tontine terminée.';
+            return redirect()->route('tontines.show', $tontine)->with('success', $message);
+        }
+
+        $message .= ' Le prochain tirage sera disponible après les nouvelles cotisations.';
+        return redirect()->route('tontines.tirage', $tontine)->with('success', $message);
     }
 }

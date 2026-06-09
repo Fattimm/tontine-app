@@ -26,18 +26,22 @@
                     </td>
                     <td>{{ $u->email }}</td>
                     <td>
-                        <form action="{{ route('admin.users.role', $u) }}" method="POST" class="d-flex gap-1">
-                            @csrf @method('PATCH')
-                            <select name="role" class="form-select form-select-sm" style="width:140px"
-                                    {{ $u->id === auth()->id() ? 'disabled' : '' }}>
-                                <option value="admin"        {{ $u->role === 'admin'        ? 'selected' : '' }}>Admin</option>
-                                <option value="organisateur" {{ $u->role === 'organisateur' ? 'selected' : '' }}>Organisateur</option>
-                                <option value="membre"       {{ $u->role === 'membre'       ? 'selected' : '' }}>Membre</option>
-                            </select>
-                            @if($u->id !== auth()->id())
-                            <button class="btn btn-outline-primary btn-sm">OK</button>
-                            @endif
-                        </form>
+                        @if($u->isMembre())
+                            <span class="badge bg-info-subtle text-info">Membre</span>
+                            <div class="text-muted small">Géré par l'organisateur</div>
+                        @else
+                            <form action="{{ route('admin.users.role', $u) }}" method="POST" class="d-flex gap-1">
+                                @csrf @method('PATCH')
+                                <select name="role" class="form-select form-select-sm select-sm-fixed"
+                                        {{ $u->id === auth()->id() ? 'disabled' : '' }}>
+                                    <option value="admin"        {{ $u->role === 'admin'        ? 'selected' : '' }}>Admin</option>
+                                    <option value="organisateur" {{ $u->role === 'organisateur' ? 'selected' : '' }}>Organisateur</option>
+                                </select>
+                                @if($u->id !== auth()->id())
+                                    <button class="btn btn-outline-primary btn-sm">OK</button>
+                                @endif
+                            </form>
+                        @endif
                     </td>
                     <td class="text-muted small">
                         {{ $u->membre?->nom_complet ?? '—' }}
@@ -46,7 +50,10 @@
                         @if($u->id !== auth()->id())
                         <form action="{{ route('admin.users.delete', $u) }}" method="POST"
                               class="d-inline"
-                              onsubmit="return confirm('Supprimer {{ $u->name }} ?')">
+                              data-confirm="Supprimer le compte de {{ $u->name }} ? Cette action est irréversible."
+                              data-confirm-titre="Supprimer l'utilisateur"
+                              data-confirm-type="danger"
+                              data-confirm-btn="Oui, supprimer">
                             @csrf @method('DELETE')
                             <button class="btn btn-outline-danger btn-sm">Supprimer</button>
                         </form>
@@ -91,29 +98,13 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Rôle</label>
-                        <select name="role" class="form-select" id="select-role">
-                            <option value="organisateur">
-                                Organisateur — gère les tontines et membres
-                            </option>
-                            <option value="membre">
-                                Membre — accès à son espace perso
-                            </option>
-                            <option value="admin">
-                                Admin — accès total
-                            </option>
+                        <select name="role" class="form-select">
+                            <option value="organisateur">Organisateur — gère les tontines et membres</option>
+                            <option value="admin">Admin — gestion des comptes</option>
                         </select>
-                        <div class="form-text">
-                            Seul l'admin peut créer des organisateurs.
+                        <div class="form-text text-muted">
+                            Les comptes membres sont créés automatiquement par l'organisateur.
                         </div>
-                    </div>
-                    <div class="mb-3" id="champ-membre">
-                        <label class="form-label fw-semibold">Lier à un membre</label>
-                        <select name="membre_id" class="form-select">
-                            <option value="">-- Sélectionner --</option>
-                            @foreach($membres as $m)
-                                <option value="{{ $m->id }}">{{ $m->nom_complet }}</option>
-                            @endforeach
-                        </select>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -126,13 +117,3 @@
 </div>
 @endsection
 
-@push('scripts')
-<script>
-// Afficher/masquer le champ membre selon le rôle
-document.getElementById('select-role').addEventListener('change', function() {
-    document.getElementById('champ-membre').style.display =
-        this.value === 'membre' ? 'block' : 'none';
-});
-document.getElementById('champ-membre').style.display = 'none';
-</script>
-@endpush

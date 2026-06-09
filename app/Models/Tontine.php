@@ -16,6 +16,7 @@ class Tontine extends Model
         'nombre_membres_max',
         'description',
         'montant_cotisation',
+        'montant_gain',
         'frequence',
         'date_debut',
         'date_fin',
@@ -26,6 +27,7 @@ class Tontine extends Model
         'date_debut'         => 'date',
         'date_fin'           => 'date',
         'montant_cotisation' => 'decimal:2',
+        'montant_gain'       => 'decimal:2',
     ];
 
     // ✅ Soft delete cascade

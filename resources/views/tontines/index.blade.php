@@ -55,13 +55,16 @@
                     <td class="text-end">
                         <a href="{{ route('tontines.show', $tontine) }}"
                            class="btn btn-outline-info btn-action">Voir</a>
+                        @can('update', $tontine)
                         <a href="{{ route('tontines.edit', $tontine) }}"
                            class="btn btn-outline-warning btn-action">Modifier</a>
-                        <a href="{{ route('tontines.prochain-beneficiaire', $tontine) }}"
-                           class="btn btn-outline-success btn-action">Bénéficiaire</a>
+                        @endcan
                         <form action="{{ route('tontines.destroy', $tontine) }}" method="POST"
                               class="d-inline"
-                              onsubmit="return confirm('Supprimer cette tontine ?')">
+                              data-confirm="Supprimer « {{ $tontine->nom }} » ? Toutes les cotisations et tours associés seront également supprimés."
+                              data-confirm-titre="Supprimer la tontine"
+                              data-confirm-type="danger"
+                              data-confirm-btn="Oui, supprimer">
                             @csrf @method('DELETE')
                             <button class="btn btn-outline-danger btn-action">Supprimer</button>
                         </form>

@@ -38,17 +38,27 @@
                         <textarea name="description" class="form-control" rows="2">{{ old('description', $tontine->description) }}</textarea>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Montant (FCFA) <span class="text-danger">*</span></label>
-                        <input type="number" name="montant_cotisation"
+                        <label class="form-label fw-semibold">Montant à cotiser / période (FCFA) <span class="text-danger">*</span></label>
+                        <input type="number" name="montant_cotisation" id="montant_cotisation"
                                class="form-control @error('montant_cotisation') is-invalid @enderror"
-                               value="{{ old('montant_cotisation', $tontine->montant_cotisation) }}">
+                               value="{{ old('montant_cotisation', $tontine->montant_cotisation) }}" min="100">
+                        <div class="form-text">Ce que chaque membre paie par période</div>
                         @error('montant_cotisation')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Montant du gain / tirage (FCFA) <span class="text-danger">*</span></label>
+                        <input type="number" name="montant_gain" id="montant_gain"
+                               class="form-control @error('montant_gain') is-invalid @enderror"
+                               value="{{ old('montant_gain', $tontine->montant_gain) }}" min="100">
+                        <div class="form-text text-success" id="gain-calcul"></div>
+                        @error('montant_gain')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Fréquence</label>
                         <select name="frequence" class="form-select">
-                            <option value="mensuel"      {{ $tontine->frequence === 'mensuel'      ? 'selected' : '' }}>Mensuel</option>
+                            <option value="quotidien"    {{ $tontine->frequence === 'quotidien'    ? 'selected' : '' }}>Quotidien</option>
                             <option value="hebdomadaire" {{ $tontine->frequence === 'hebdomadaire' ? 'selected' : '' }}>Hebdomadaire</option>
+                            <option value="mensuel"      {{ $tontine->frequence === 'mensuel'      ? 'selected' : '' }}>Mensuel</option>
                             <option value="trimestriel"  {{ $tontine->frequence === 'trimestriel'  ? 'selected' : '' }}>Trimestriel</option>
                         </select>
                     </div>
@@ -81,4 +91,27 @@
     </div>
 </div>
 </div>
+@push('scripts')
+<script>
+(function () {
+    const cotis  = document.getElementById('montant_cotisation');
+    const nbMax  = document.querySelector('[name="nombre_membres_max"]');
+    const gain   = document.getElementById('montant_gain');
+    const info   = document.getElementById('gain-calcul');
+
+    function calculer() {
+        const c = parseFloat(cotis.value) || 0;
+        const n = parseInt(nbMax.value)   || 0;
+        if (c > 0 && n > 0) {
+            const total = c * n;
+            info.textContent = c.toLocaleString('fr-FR') + ' × ' + n + ' = ' + total.toLocaleString('fr-FR') + ' FCFA (calculé)';
+        }
+    }
+
+    cotis.addEventListener('input', calculer);
+    nbMax.addEventListener('input', calculer);
+}());
+</script>
+@endpush
+
 @endsection

@@ -52,6 +52,8 @@ class StoreMembreRequest extends FormRequest
             'email.email'        => 'Veuillez fournir une adresse email valide.',
             'email.unique'       => 'Cet email est déjà utilisé.',
             'statut.in'          => 'Le statut doit être actif ou inactif.',
+            'tontine_id.required' => 'Veuillez sélectionner une tontine.',
+            'tontine_id.exists'   => 'La tontine sélectionnée n\'existe pas.',
         ];
     }
 

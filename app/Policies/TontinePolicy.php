@@ -42,7 +42,8 @@ class TontinePolicy
     public function update(User $user, Tontine $tontine): bool
     {
         return $user->isOrganisateur()
-            && $tontine->organisateur_id === $user->id;
+            && $tontine->organisateur_id === $user->id
+            && $tontine->statut !== 'terminee';
     }
 
     public function delete(User $user, Tontine $tontine): bool

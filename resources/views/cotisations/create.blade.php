@@ -5,8 +5,9 @@
 <div class="row justify-content-center">
 <div class="col-md-7">
 
+    @php $retour = auth()->user()->isMembre() ? route('dashboard') : route('cotisations.index'); @endphp
     <div class="d-flex align-items-center mb-4 gap-2">
-        <a href="{{ route('cotisations.index') }}" class="btn btn-sm btn-outline-secondary">← Retour</a>
+        <a href="{{ $retour }}" class="btn btn-sm btn-outline-secondary">← Retour</a>
         <h4 class="mb-0 fw-bold">Enregistrer une cotisation</h4>
     </div>
 
@@ -16,50 +17,61 @@
                 @csrf
 
                 <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Membre <span class="text-danger">*</span></label>
-                        <select name="membre_id" class="form-select @error('membre_id') is-invalid @enderror">
-                            <option value="">-- Sélectionner --</option>
-                            @foreach($membres as $m)
-                                <option value="{{ $m->id }}"
-                                    {{ (old('membre_id', request('membre_id')) == $m->id) ? 'selected' : '' }}>
-                                    {{ $m->nom_complet }} — {{ $m->telephone }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('membre_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
+                    {{-- Membre --}}
+                    @if($monMembre)
+                        {{-- Vue membre : champ verrouillé --}}
+                        <input type="hidden" name="membre_id" value="{{ $monMembre->id }}">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Membre</label>
+                            <input type="text" class="form-control bg-light"
+                                   value="{{ $monMembre->nom_complet }}" disabled>
+                        </div>
+                    @else
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Membre <span class="text-danger">*</span></label>
+                            <select name="membre_id" class="form-select @error('membre_id') is-invalid @enderror">
+                                <option value="">-- Sélectionner --</option>
+                                @foreach($membres as $m)
+                                    <option value="{{ $m->id }}"
+                                        {{ (old('membre_id', request('membre_id')) == $m->id) ? 'selected' : '' }}>
+                                        {{ $m->nom_complet }} — {{ $m->telephone }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('membre_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                    @endif
 
+                    {{-- Tontine --}}
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Tontine <span class="text-danger">*</span></label>
-                        <select name="tontine_id" class="form-select @error('tontine_id') is-invalid @enderror">
-                            <option value="">-- Sélectionner --</option>
-                            @foreach($tontines as $t)
-                                <option value="{{ $t->id }}" {{ old('tontine_id') == $t->id ? 'selected' : '' }}>
-                                    {{ $t->nom }} ({{ number_format($t->montant_cotisation, 0, ',', ' ') }} FCFA)
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('tontine_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        @if($tontines->isEmpty())
+                            <div class="alert alert-warning py-2 mb-0">
+                                Vous n'êtes inscrit à aucune tontine active pour le moment.
+                            </div>
+                        @else
+                            <select id="tontine_select" name="tontine_id"
+                                    class="form-select @error('tontine_id') is-invalid @enderror">
+                                <option value="">-- Sélectionner --</option>
+                                @foreach($tontines as $t)
+                                    <option value="{{ $t->id }}"
+                                            data-montant="{{ (int) $t->montant_cotisation }}"
+                                            {{ old('tontine_id', $monMembre && $tontines->count() === 1 ? $t->id : '') == $t->id ? 'selected' : '' }}>
+                                        {{ $t->nom }} — {{ number_format($t->montant_cotisation, 0, ',', ' ') }} FCFA/période
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('tontine_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        @endif
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Tour (optionnel)</label>
-                        <select name="tour_id" class="form-select">
-                            <option value="">-- Aucun tour --</option>
-                            @foreach($tours as $tour)
-                                <option value="{{ $tour->id }}" {{ old('tour_id') == $tour->id ? 'selected' : '' }}>
-                                    Tour #{{ $tour->numero_tour }} — {{ $tour->tontine->nom }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Montant (FCFA) <span class="text-danger">*</span></label>
-                        <input type="number" name="montant"
-                               class="form-control @error('montant') is-invalid @enderror"
-                               value="{{ old('montant') }}" placeholder="Ex: 25000" min="100">
+                        <label class="form-label fw-semibold">Montant à payer (FCFA)</label>
+                        <input type="number" id="montant_input" name="montant"
+                               class="form-control bg-light @error('montant') is-invalid @enderror"
+                               value="{{ old('montant') }}" readonly
+                               placeholder="Sélectionnez une tontine">
+                        <div class="form-text">Fixé automatiquement par la tontine.</div>
                         @error('montant')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 
@@ -82,6 +94,30 @@
                         @error('mode_paiement')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Nature <span class="text-danger">*</span></label>
+                        <div class="d-flex flex-column gap-2 mt-1">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="est_reserve"
+                                       id="nature_normale" value="0"
+                                       {{ old('est_reserve', '0') === '0' ? 'checked' : '' }}>
+                                <label class="form-check-label" for="nature_normale">
+                                    <strong>Normale</strong>
+                                    <span class="text-muted small d-block">Cotisation pour la période en cours</span>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="est_reserve"
+                                       id="nature_reserve" value="1"
+                                       {{ old('est_reserve') === '1' ? 'checked' : '' }}>
+                                <label class="form-check-label" for="nature_reserve">
+                                    <strong>Réserve</strong>
+                                    <span class="text-muted small d-block">Paiement en avance pour la période suivante</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="col-12">
                         <label class="form-label fw-semibold">Notes</label>
                         <textarea name="notes" class="form-control" rows="2"
@@ -93,11 +129,30 @@
 
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-success px-4">Enregistrer</button>
-                    <a href="{{ route('cotisations.index') }}" class="btn btn-outline-secondary">Annuler</a>
+                    <a href="{{ $retour }}" class="btn btn-outline-secondary">Annuler</a>
                 </div>
             </form>
         </div>
     </div>
 </div>
 </div>
+@push('scripts')
+<script>
+(function () {
+    const select = document.getElementById('tontine_select');
+    const input  = document.getElementById('montant_input');
+    if (!select || !input) return;
+
+    function syncMontant() {
+        const opt = select.options[select.selectedIndex];
+        const montant = opt ? opt.dataset.montant : '';
+        input.value = montant || '';
+    }
+
+    select.addEventListener('change', syncMontant);
+    syncMontant(); // initialiser au chargement si tontine déjà sélectionnée
+}());
+</script>
+@endpush
+
 @endsection

@@ -21,20 +21,28 @@ class StoreCotisationRequest extends FormRequest
             'montant'       => ['required', 'numeric', 'min:100', 'max:10000000'],
             'date_paiement' => ['required', 'date', 'before_or_equal:today'],
             'mode_paiement' => ['required', 'in:espece,mobile_money,virement'],
+            'est_reserve'   => ['nullable', 'boolean'],
             'notes'         => ['nullable', 'string', 'max:500'],
         ];
     }
 
     public function messages(): array
     {
-       return [
+        return [
             'membre_id.required'            => 'Veuillez sélectionner un membre.',
             'membre_id.exists'              => 'Ce membre n\'existe pas.',
             'tontine_id.required'           => 'Veuillez sélectionner une tontine.',
             'tontine_id.exists'             => 'Cette tontine n\'existe pas.',
+            'montant.required'              => 'Le montant est obligatoire.',
+            'montant.numeric'               => 'Le montant doit être un nombre.',
+            'montant.min'                   => 'Le montant minimum est de 100 FCFA.',
+            'montant.max'                   => 'Le montant ne peut pas dépasser 10 000 000 FCFA.',
             'date_paiement.required'        => 'La date de paiement est obligatoire.',
-            'date_paiement.before_or_equal' => 'La date ne peut pas être dans le futur.',
+            'date_paiement.date'            => 'La date de paiement n\'est pas valide.',
+            'date_paiement.before_or_equal' => 'La date de paiement ne peut pas être dans le futur.',
             'mode_paiement.required'        => 'Le mode de paiement est obligatoire.',
+            'mode_paiement.in'              => 'Le mode de paiement sélectionné n\'est pas valide.',
+            'notes.max'                     => 'Les notes ne peuvent pas dépasser 500 caractères.',
         ];
     }
 }

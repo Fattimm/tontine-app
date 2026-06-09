@@ -26,7 +26,7 @@
                     <th>Montant</th>
                     <th>Date</th>
                     <th>Mode</th>
-                    <th>Type</th>
+                    <th>Nature</th>
                     <th>Statut</th>
                     <th class="text-end">Actions</th>
                 </tr>
@@ -84,7 +84,10 @@
                            class="btn btn-outline-info btn-action">Voir</a>
                         <form action="{{ route('cotisations.destroy', $c) }}" method="POST"
                               class="d-inline"
-                              onsubmit="return confirm('Supprimer cette cotisation ?')">
+                              data-confirm="Supprimer cette cotisation ? Cette action est irréversible."
+                              data-confirm-titre="Supprimer la cotisation"
+                              data-confirm-type="danger"
+                              data-confirm-btn="Oui, supprimer">
                             @csrf @method('DELETE')
                             <button class="btn btn-outline-danger btn-action">Supprimer</button>
                         </form>

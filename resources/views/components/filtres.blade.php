@@ -95,8 +95,9 @@
                 <div class="col-md-2">
                     <select name="frequence" class="form-select form-select-sm" onchange="this.form.submit()">
                         <option value="">Toutes fréquences</option>
-                        <option value="mensuel"      {{ request('frequence') === 'mensuel'      ? 'selected' : '' }}>Mensuel</option>
+                        <option value="quotidien"    {{ request('frequence') === 'quotidien'    ? 'selected' : '' }}>Quotidien</option>
                         <option value="hebdomadaire" {{ request('frequence') === 'hebdomadaire' ? 'selected' : '' }}>Hebdomadaire</option>
+                        <option value="mensuel"      {{ request('frequence') === 'mensuel'      ? 'selected' : '' }}>Mensuel</option>
                         <option value="trimestriel"  {{ request('frequence') === 'trimestriel'  ? 'selected' : '' }}>Trimestriel</option>
                     </select>
                 </div>
@@ -121,7 +122,17 @@ function debounceSubmit() {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
         document.getElementById('form-filtres').submit();
-    }, 400); // ✅ soumet 400ms après arrêt de frappe
+    }, 600);
 }
+
+// Refocus le champ search après rechargement de page
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.querySelector('#form-filtres input[name="search"]');
+    if (searchInput && searchInput.value.length > 0) {
+        searchInput.focus();
+        const len = searchInput.value.length;
+        searchInput.setSelectionRange(len, len);
+    }
+});
 </script>
 @endpush
