@@ -5,13 +5,18 @@ namespace App\Http\Controllers;
 use App\Models\Tontine;
 use App\Models\Membre;
 use App\Services\TontineService;
+use App\Services\CotisationService;
 use App\Http\Requests\StoreTontineRequest;
 use App\Http\Requests\UpdateTontineRequest;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class TontineController extends Controller
 {
-    public function __construct(private TontineService $tontineService) {}
+    public function __construct(
+        private TontineService    $tontineService,
+        private CotisationService $cotisationService,
+    ) {}
 
     public function index()
     {
@@ -131,5 +136,19 @@ class TontineController extends Controller
             ->with('gagnant_id', $tour->membre_id)
             ->with('gagnant_nom', $tour->membre->nom_complet)
             ->with('success', 'Tirage effectué !');
+    }
+
+    public function exportPdf(Tontine $tontine)
+    {
+        $this->authorize('view', $tontine);
+
+        $tontine->load(['membres', 'tours.membre', 'organisateur']);
+        $cotisations = $this->cotisationService->getListeComplete(['tontine_id' => $tontine->id]);
+        $stats       = $this->tontineService->getStats($tontine);
+
+        $pdf = Pdf::loadView('pdf.tontine', compact('tontine', 'cotisations', 'stats'))
+                  ->setPaper('a4', 'portrait');
+
+        return $pdf->download('tontine-' . \Str::slug($tontine->nom) . '-' . now()->format('Y-m-d') . '.pdf');
     }
 }

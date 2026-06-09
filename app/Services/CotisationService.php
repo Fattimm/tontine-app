@@ -2,12 +2,14 @@
 
 namespace App\Services;
 
+use App\Mail\CotisationEnregistree;
 use App\Models\Cotisation;
 use App\Models\Membre;
 use App\Models\Tontine;
 use App\Models\User;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
 
 class CotisationService
@@ -85,6 +87,12 @@ class CotisationService
                 ? 'Cotisation en réserve enregistrée (période du ' . $datePeriode->translatedFormat('d F Y') . ').'
                 : 'Cotisation normale enregistrée avec succès.';
 
+            // Notifier le membre par email s'il a une adresse réelle
+            $emailMembre = $membre->user?->email;
+            if ($emailMembre && !str_ends_with($emailMembre, '@tontine.sn')) {
+                Mail::to($emailMembre)->send(new CotisationEnregistree($cotisation));
+            }
+
             return [
                 'succes'     => true,
                 'reserve'    => $estReserve,
@@ -144,6 +152,18 @@ class CotisationService
             'nombre_paiements'    => (clone $cotisations)->count(),
             'derniere_cotisation' => (clone $cotisations)->latest('date_paiement')->first(),
         ];
+    }
+
+    public function getListeComplete(array $filtres = [])
+    {
+        $query = Cotisation::with(['membre', 'tontine', 'tour'])
+            ->whereHas('tontine', fn($q) => $q->whereNull('deleted_at'));
+
+        if (!empty($filtres['statut']))        $query->where('statut', $filtres['statut']);
+        if (!empty($filtres['mode_paiement'])) $query->where('mode_paiement', $filtres['mode_paiement']);
+        if (!empty($filtres['tontine_id']))    $query->where('tontine_id', $filtres['tontine_id']);
+
+        return $query->latest('date_paiement')->get();
     }
 
     public function getListe(array $filtres = []): LengthAwarePaginator

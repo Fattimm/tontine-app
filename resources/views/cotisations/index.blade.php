@@ -7,7 +7,13 @@
         <h4 class="mb-0 fw-bold">💳 Cotisations</h4>
         <small class="text-muted">{{ $cotisations->total() }} cotisation(s)</small>
     </div>
-    <a href="{{ route('cotisations.create') }}" class="btn btn-success btn-sm">+ Nouvelle cotisation</a>
+    <div class="d-flex gap-2">
+        <a href="{{ route('cotisations.export-pdf', request()->only(['statut','mode_paiement','tontine_id'])) }}"
+           class="btn btn-outline-danger btn-sm" target="_blank">
+            PDF
+        </a>
+        <a href="{{ route('cotisations.create') }}" class="btn btn-success btn-sm">+ Nouvelle cotisation</a>
+    </div>
 </div>
 
 <x-filtres

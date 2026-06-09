@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Tour;
 use App\Services\TontineService;
 use App\Services\TourService;
+use App\Http\Requests\StoreTourRequest;
+use App\Http\Requests\UpdateTourRequest;
 
 class TourController extends Controller
 {
@@ -15,6 +17,8 @@ class TourController extends Controller
 
     public function index()
     {
+        $this->authorize('viewAny', Tour::class);
+
         $tontines = $this->tourService->getListe(auth()->user());
 
         return view('tours.index', compact('tontines'));
@@ -22,22 +26,18 @@ class TourController extends Controller
 
     public function create()
     {
+        $this->authorize('create', Tour::class);
+
         ['tontines' => $tontines, 'membres' => $membres] = $this->tourService->getFormData();
 
         return view('tours.create', compact('tontines', 'membres'));
     }
 
-    public function store(\Illuminate\Http\Request $request)
+    public function store(StoreTourRequest $request)
     {
-        $data = $request->validate([
-            'tontine_id'  => 'required|exists:tontines,id',
-            'membre_id'   => 'required|exists:membres,id',
-            'numero_tour' => 'required|integer|min:1',
-            'date_prevue' => 'required|date',
-            'statut'      => 'in:en_attente,complete,reporte',
-        ]);
+        $this->authorize('create', Tour::class);
 
-        $this->tourService->creer($data);
+        $this->tourService->creer($request->validated());
 
         return redirect()
             ->route('tours.index')
@@ -46,6 +46,8 @@ class TourController extends Controller
 
     public function show(Tour $tour)
     {
+        $this->authorize('view', $tour);
+
         $tour->load(['tontine', 'membre', 'cotisations.membre']);
 
         return view('tours.show', compact('tour'));
@@ -53,23 +55,18 @@ class TourController extends Controller
 
     public function edit(Tour $tour)
     {
+        $this->authorize('update', $tour);
+
         ['tontines' => $tontines, 'membres' => $membres] = $this->tourService->getFormData();
 
         return view('tours.edit', compact('tour', 'tontines', 'membres'));
     }
 
-    public function update(\Illuminate\Http\Request $request, Tour $tour)
+    public function update(UpdateTourRequest $request, Tour $tour)
     {
-        $data = $request->validate([
-            'membre_id'       => 'required|exists:membres,id',
-            'numero_tour'     => 'required|integer|min:1',
-            'date_prevue'     => 'required|date',
-            'date_effective'  => 'nullable|date',
-            'montant_recu'    => 'nullable|numeric|min:0',
-            'statut'          => 'in:en_attente,complete,reporte',
-        ]);
+        $this->authorize('update', $tour);
 
-        $this->tourService->modifier($tour, $data);
+        $this->tourService->modifier($tour, $request->validated());
 
         return redirect()
             ->route('tours.index')
@@ -78,6 +75,8 @@ class TourController extends Controller
 
     public function destroy(Tour $tour)
     {
+        $this->authorize('delete', $tour);
+
         $this->tourService->supprimer($tour);
 
         return redirect()
@@ -87,6 +86,7 @@ class TourController extends Controller
 
     public function confirmer(Tour $tour)
     {
+        $this->authorize('confirmer', $tour);
         ['tontine' => $tontine, 'montant' => $montant] = $this->tourService->confirmer($tour);
 
         $this->tontineService->verifierEtTerminer($tontine);

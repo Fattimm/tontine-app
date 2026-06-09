@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Mail\TirageEffectue;
 use App\Models\Cotisation;
 use App\Models\Membre;
 use App\Models\Tontine;
@@ -10,6 +11,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Mail;
 
 class TontineService
 {
@@ -46,7 +48,15 @@ class TontineService
             'statut'      => 'en_attente',
         ]);
 
-        return $tour->load('membre');
+        $tour->load(['membre', 'tontine']);
+
+        // Notifier le bénéficiaire par email s'il a une adresse réelle
+        $emailGagnant = $gagnant->user?->email;
+        if ($emailGagnant && !str_ends_with($emailGagnant, '@tontine.sn')) {
+            Mail::to($emailGagnant)->send(new TirageEffectue($tour));
+        }
+
+        return $tour;
     }
 
     /**

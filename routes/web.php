@@ -81,12 +81,16 @@ Route::middleware(['auth', 'organisateur'])->group(function () {
     // Cotisations — index, show, destroy (pas create/store, déjà au dessus)
     Route::get('cotisations/supprimees', [CotisationController::class, 'supprimees'])->name('cotisations.supprimees');
     Route::patch('cotisations/{id}/restaurer', [CotisationController::class, 'restaurer'])->name('cotisations.restaurer');
+    Route::get('cotisations/export-pdf', [CotisationController::class, 'exportPdf'])->name('cotisations.export-pdf');
     Route::resource('cotisations', CotisationController::class)
          ->except(['create', 'store', 'edit', 'update']);
 
     // Tours
     Route::resource('tours', TourController::class);
     Route::patch('tours/{tour}/confirmer', [TourController::class, 'confirmer'])->name('tours.confirmer');
+
+    // Export PDF tontine
+    Route::get('tontines/{tontine}/export-pdf', [TontineController::class, 'exportPdf'])->name('tontines.export-pdf');
 });
 
 // =========================================

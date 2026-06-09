@@ -8,6 +8,7 @@ use App\Models\Tontine;
 use App\Services\CotisationService;
 use App\Services\TontineService;
 use App\Http\Requests\StoreCotisationRequest;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class CotisationController extends Controller
 {
@@ -120,5 +121,19 @@ class CotisationController extends Controller
         $this->cotisationService->restaurer($id, auth()->user());
 
         return back()->with('success', 'Cotisation restaurée avec succès.');
+    }
+
+    public function exportPdf()
+    {
+        $filtres      = request()->only(['statut', 'mode_paiement', 'tontine_id']);
+        $cotisations  = $this->cotisationService->getListeComplete($filtres);
+        $tontineFiltree = !empty($filtres['tontine_id'])
+            ? $this->tontineService->getTontinesActives()->firstWhere('id', $filtres['tontine_id'])
+            : null;
+
+        $pdf = Pdf::loadView('pdf.cotisations', compact('cotisations', 'tontineFiltree'))
+                  ->setPaper('a4', 'landscape');
+
+        return $pdf->download('cotisations-' . now()->format('Y-m-d') . '.pdf');
     }
 }

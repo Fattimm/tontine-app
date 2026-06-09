@@ -10,9 +10,9 @@ class ExampleTest extends TestCase
     /**
      * A basic test example.
      */
-    public function test_the_application_returns_a_successful_response(): void
+    public function test_la_page_login_est_accessible(): void
     {
-        $response = $this->get('/');
+        $response = $this->get(route('login'));
 
         $response->assertStatus(200);
     }

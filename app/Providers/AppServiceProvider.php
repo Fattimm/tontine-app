@@ -12,6 +12,7 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Tontine::class    => \App\Policies\TontinePolicy::class,
         \App\Models\Membre::class     => \App\Policies\MembrePolicy::class,
         \App\Models\Cotisation::class => \App\Policies\CotisationPolicy::class,
+        \App\Models\Tour::class       => \App\Policies\TourPolicy::class,
     ];
 
     public function boot(): void

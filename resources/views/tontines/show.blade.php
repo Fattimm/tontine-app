@@ -152,6 +152,8 @@
 
                 <a href="{{ route('cotisations.par-tontine', $tontine) }}"
                    class="btn btn-outline-primary">💳 Voir les cotisations</a>
+                <a href="{{ route('tontines.export-pdf', $tontine) }}"
+                   class="btn btn-outline-danger" target="_blank">Exporter PDF</a>
                 <a href="{{ route('cotisations.create') }}"
                    class="btn btn-outline-success">+ Enregistrer cotisation</a>
                 @can('update', $tontine)
