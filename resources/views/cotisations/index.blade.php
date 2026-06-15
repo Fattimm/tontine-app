@@ -4,7 +4,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0 fw-bold">💳 Cotisations</h4>
+        <h4 class="mb-0 fw-bold"><i class="bi bi-credit-card text-info"></i> Cotisations</h4>
         <small class="text-muted">{{ $cotisations->total() }} cotisation(s)</small>
     </div>
     <div class="d-flex gap-2">

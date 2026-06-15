@@ -66,7 +66,7 @@
             <div class="card-body py-3">
                 @if($tour)
                     @if($tour->statut === 'complete')
-                        <div class="fs-2">🏆</div>
+                        <div class="fs-2"><i class="bi bi-trophy text-warning"></i></div>
                         <div class="text-warning fw-bold small">A bénéficié</div>
                     @else
                         <div class="fs-4 fw-bold text-info">Tour #{{ $tour->numero_tour }}</div>
@@ -128,7 +128,7 @@
             <div class="card-body text-center">
                 @if($tour)
                     @if($tour->statut === 'complete')
-                        <div class="display-4 mb-2">🏆</div>
+                        <div class="display-4 mb-2"><i class="bi bi-trophy text-warning"></i></div>
                         <h5 class="text-success fw-bold">A bénéficié !</h5>
                         <p class="text-muted small mb-1">
                             Tour #{{ $tour->numero_tour }}
@@ -142,7 +142,7 @@
                         </p>
                         @endif
                     @elseif($tour->statut === 'en_attente')
-                        <div class="display-4 mb-2">⏳</div>
+                        <div class="display-4 mb-2"><i class="bi bi-hourglass-split text-info"></i></div>
                         <h5 class="text-info fw-bold">Tour en attente</h5>
                         <p class="text-muted small">Tour #{{ $tour->numero_tour }}</p>
                         <p class="text-muted small">
@@ -158,11 +158,11 @@
                             </strong>
                         </div>
                     @else
-                        <div class="display-4 mb-2">📅</div>
+                        <div class="display-4 mb-2"><i class="bi bi-calendar text-warning"></i></div>
                         <h5 class="text-warning">Tour reporté</h5>
                     @endif
                 @else
-                    <div class="display-4 mb-2">🎲</div>
+                    <div class="display-4 mb-2"><i class="bi bi-shuffle text-muted"></i></div>
                     <p class="text-muted">
                         Pas encore désigné bénéficiaire.
                     </p>

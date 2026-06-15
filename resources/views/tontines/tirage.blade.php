@@ -4,7 +4,7 @@
 @section('content')
 <div class="d-flex align-items-center mb-4 gap-2">
     <a href="{{ route('tontines.show', $tontine) }}" class="btn btn-sm btn-outline-secondary">← Retour</a>
-    <h4 class="mb-0 fw-bold">🎲 Tirage — {{ $tontine->nom }}</h4>
+    <h4 class="mb-0 fw-bold"><i class="bi bi-shuffle text-primary"></i> Tirage — {{ $tontine->nom }}</h4>
 </div>
 
 <div class="row justify-content-center">
@@ -21,7 +21,7 @@
                 <div class="col-md-6">
                     <div class="d-flex align-items-center gap-2 p-2 rounded border
                         {{ $m->a_cotise ? 'border-success bg-success-subtle' : 'border-warning bg-warning-subtle' }}">
-                        <span>{{ $m->a_cotise ? '✅' : '⏳' }}</span>
+                        <span>{!! $m->a_cotise ? '<i class="bi bi-check-circle text-success"></i>' : '<i class="bi bi-hourglass-split text-warning"></i>' !!}</span>
                         <span class="fw-semibold">{{ $m->nom_complet }}</span>
                         <span class="badge ms-auto {{ $m->a_cotise ? 'bg-success' : 'bg-warning text-dark' }}">
                             {{ $m->a_cotise ? 'Cotisé' : 'En attente' }}
@@ -33,7 +33,7 @@
 
             @if(!$peutFaireTirage && !$tourEnAttente)
                 <div class="alert alert-warning mt-3 mb-0">
-                    ⚠️ Le tirage sera disponible quand tous les membres auront cotisé pour cette période.
+                    <i class="bi bi-exclamation-triangle-fill"></i> Le tirage sera disponible quand tous les membres auront cotisé pour cette période.
                 </div>
             @endif
         </div>
@@ -46,7 +46,7 @@
             @if(session('gagnant_nom'))
                 {{-- Résultat --}}
                 <div class="py-3">
-                    <div class="display-1 mb-2 anim-bounce">🏆</div>
+                    <div class="display-1 mb-2 anim-bounce"><i class="bi bi-trophy text-warning"></i></div>
                     <h2 class="fw-bold text-success anim-apparaitre">{{ session('gagnant_nom') }}</h2>
                     <p class="text-muted fs-5">est le bénéficiaire de cette période !</p>
                     <div class="alert alert-success mt-3 d-inline-block px-4">
@@ -63,16 +63,16 @@
                 @php $delaiDepasse = $tourEnAttente->date_prevue->endOfDay()->isPast(); @endphp
                 <div class="py-3">
                     @if($delaiDepasse)
-                        <div class="display-1 mb-2">🚨</div>
+                        <div class="display-1 mb-2"><i class="bi bi-exclamation-octagon text-danger"></i></div>
                         <h4 class="fw-bold text-danger">Délai dépassé — versement en retard</h4>
                         <div class="alert alert-danger mt-2 px-4">
                             Le versement à <strong>{{ $tourEnAttente->membre->nom_complet }}</strong>
                             était prévu le <strong>{{ $tourEnAttente->date_prevue->format('d/m/Y') }}</strong>
                             et n'a pas encore été confirmé.
-                            <div class="mt-1 small">⚠️ Le prochain tirage est bloqué jusqu'à confirmation.</div>
+                            <div class="mt-1 small"><i class="bi bi-exclamation-triangle-fill"></i> Le prochain tirage est bloqué jusqu'à confirmation.</div>
                         </div>
                     @else
-                        <div class="display-1 mb-2">⏳</div>
+                        <div class="display-1 mb-2"><i class="bi bi-hourglass-split text-warning"></i></div>
                         <h4 class="fw-bold text-warning">En attente de versement</h4>
                         <div class="alert alert-warning d-inline-block px-4 mt-2">
                             <strong>{{ $tourEnAttente->membre->nom_complet }}</strong>
@@ -92,14 +92,14 @@
                         @csrf @method('PATCH')
                         <button type="submit"
                                 class="btn btn-lg px-5 fw-bold shadow-sm {{ $delaiDepasse ? 'btn-danger' : 'btn-success' }}">
-                            ✅ Confirmer que {{ $tourEnAttente->membre->nom_complet }} a reçu sa part
+                            <i class="bi bi-check-circle"></i> Confirmer que {{ $tourEnAttente->membre->nom_complet }} a reçu sa part
                         </button>
                     </form>
                 </div>
 
             @elseif($eligibles->isEmpty())
                 <div class="py-4">
-                    <div class="display-1 mb-3">🎉</div>
+                    <div class="display-1 mb-3"><i class="bi bi-stars text-success"></i></div>
                     <h4 class="text-success fw-bold">Tontine terminée !</h4>
                     <p class="text-muted">Tous les membres ont bénéficié de la tontine.</p>
                     <a href="{{ route('tontines.show', $tontine) }}" class="btn btn-outline-secondary mt-2">Retour</a>
@@ -125,7 +125,7 @@
                     <button type="button" id="btn-tirage"
                             onclick="lancerRoue()"
                             class="btn btn-success btn-lg px-5 fw-bold shadow-sm">
-                        🎲 Lancer le tirage
+                        <i class="bi bi-shuffle"></i> Lancer le tirage
                     </button>
                     <form action="{{ route('tontines.tirage.executer', $tontine) }}"
                           method="POST" id="form-tirage">
@@ -133,7 +133,7 @@
                     </form>
                 @else
                     <button class="btn btn-secondary btn-lg px-5" disabled>
-                        🔒 En attente des cotisations
+                        <i class="bi bi-lock"></i> En attente des cotisations
                     </button>
                 @endif
             @endif
@@ -173,9 +173,9 @@
                         </td>
                         <td>
                             @if($tour->statut === 'complete')
-                                <span class="badge bg-success-subtle text-success">✅ Complété</span>
+                                <span class="badge bg-success-subtle text-success"><i class="bi bi-check-circle"></i> Complété</span>
                             @elseif($tour->statut === 'en_attente')
-                                <span class="badge bg-info-subtle text-info">⏳ En attente</span>
+                                <span class="badge bg-info-subtle text-info"><i class="bi bi-hourglass-split"></i> En attente</span>
                             @else
                                 <span class="badge bg-warning-subtle text-warning">Reporté</span>
                             @endif
@@ -279,7 +279,7 @@
 
         const btn = document.getElementById('btn-tirage');
         btn.disabled    = true;
-        btn.textContent = '⏳ En cours…';
+        btn.textContent = 'En cours…';
 
         // Nombre de tours + atterrissage aléatoire
         const toursSupp  = 6 + Math.floor(Math.random() * 4);   // 6–9 tours complets

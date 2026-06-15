@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion — TontineApp</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 </head>
 <body class="d-flex align-items-center justify-content-center min-vh-100 auth-bg">
 <div class="auth-card card shadow-sm w-100 mx-3">
     <div class="card-body p-4">
         <div class="text-center mb-4">
-            <div class="fs-1">💰</div>
+            <div class="fs-1"><i class="bi bi-wallet2"></i></div>
             <h4 class="fw-bold">TontineApp</h4>
             <p class="text-muted small">Connectez-vous à votre espace</p>
         </div>

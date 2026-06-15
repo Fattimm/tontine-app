@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'TontineApp')</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-success">
     <div class="container-fluid px-4">
-        <a class="navbar-brand" href="{{ route('dashboard') }}">💰 TontineApp</a>
+        <a class="navbar-brand" href="{{ route('dashboard') }}"><i class="bi bi-wallet2"></i> TontineApp</a>
         <div class="navbar-nav ms-auto d-flex align-items-center gap-2">
             <a href="{{ route('profil.edit') }}"
             class="navbar-text text-white text-decoration-none small">
@@ -35,7 +36,7 @@
         {{-- Dashboard pour tous --}}
         <a href="{{ route('dashboard') }}"
         class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-            <span class="icon">📊</span> Dashboard
+            <i class="bi bi-bar-chart-line text-primary"></i> Dashboard
         </a>
 
         {{-- Admin uniquement --}}
@@ -44,11 +45,11 @@
             <p class="text-muted text-uppercase fw-bold sidebar-section">Administration</p>
             <a href="{{ route('admin.users') }}"
             class="nav-link {{ request()->routeIs('admin.users') ? 'active' : '' }}">
-                <span class="icon">🔑</span> Utilisateurs
+                <i class="bi bi-key text-warning"></i> Utilisateurs
             </a>
             <a href="{{ route('admin.users.supprimes') }}"
             class="nav-link {{ request()->routeIs('admin.users.supprimes') ? 'active' : '' }}">
-                <span class="icon">🗑️</span> Corbeille
+                <i class="bi bi-trash text-danger"></i> Corbeille
                 @php $nbSupp = \App\Models\User::onlyTrashed()->count(); @endphp
                 @if($nbSupp > 0)
                     <span class="badge bg-danger ms-1">{{ $nbSupp }}</span>
@@ -62,19 +63,19 @@
             <p class="text-muted text-uppercase fw-bold sidebar-section">Gestion</p>
             <a href="{{ route('membres.index') }}"
             class="nav-link {{ request()->routeIs('membres.index') || request()->routeIs('membres.create') || request()->routeIs('membres.show') || request()->routeIs('membres.edit') ? 'active' : '' }}">
-                <span class="icon">👥</span> Membres
+                <i class="bi bi-people text-primary"></i> Membres
             </a>
             <a href="{{ route('tontines.index') }}"
             class="nav-link {{ request()->routeIs('tontines.index') || request()->routeIs('tontines.show') || request()->routeIs('tontines.create') || request()->routeIs('tontines.edit') || request()->routeIs('tontines.tirage') ? 'active' : '' }}">
-                <span class="icon">💼</span> Mes tontines
+                <i class="bi bi-briefcase text-success"></i> Mes tontines
             </a>
             <a href="{{ route('cotisations.index') }}"
             class="nav-link {{ request()->routeIs('cotisations.index') || request()->routeIs('cotisations.show') ? 'active' : '' }}">
-                <span class="icon">💳</span> Cotisations
+                <i class="bi bi-credit-card text-info"></i> Cotisations
             </a>
             <a href="{{ route('tours.index') }}"
             class="nav-link {{ request()->routeIs('tours*') ? 'active' : '' }}">
-                <span class="icon">🔄</span> Tours
+                <i class="bi bi-trophy text-warning"></i> Tours
             </a>
             <hr>
             <p class="text-muted text-uppercase fw-bold sidebar-section">Corbeille</p>
@@ -87,21 +88,21 @@
             @endphp
             <a href="{{ route('membres.supprimes') }}"
             class="nav-link {{ request()->routeIs('membres.supprimes') ? 'active' : '' }}">
-                <span class="icon">👥</span> Membres
+                <i class="bi bi-people text-danger"></i> Membres
                 @if($nbMembresSupp > 0)
                     <span class="badge bg-danger ms-1">{{ $nbMembresSupp }}</span>
                 @endif
             </a>
             <a href="{{ route('tontines.supprimees') }}"
             class="nav-link {{ request()->routeIs('tontines.supprimees') ? 'active' : '' }}">
-                <span class="icon">💼</span> Tontines
+                <i class="bi bi-briefcase text-danger"></i> Tontines
                 @if($nbTontinesSupp > 0)
                     <span class="badge bg-danger ms-1">{{ $nbTontinesSupp }}</span>
                 @endif
             </a>
             <a href="{{ route('cotisations.supprimees') }}"
             class="nav-link {{ request()->routeIs('cotisations.supprimees') ? 'active' : '' }}">
-                <span class="icon">💳</span> Cotisations
+                <i class="bi bi-credit-card text-danger"></i> Cotisations
                 @if($nbCotisSupp > 0)
                     <span class="badge bg-danger ms-1">{{ $nbCotisSupp }}</span>
                 @endif
@@ -115,30 +116,30 @@
             @if(auth()->user()->membre)
                 <a href="{{ route('membres.tontine-detail', [auth()->user()->membre, auth()->user()->membre->tontines()->first()]) }}"
                 class="nav-link">
-                    <span class="icon">💼</span> Mes tontines
+                    <i class="bi bi-briefcase text-success"></i> Mes tontines
                 </a>
             @endif
             <a href="{{ route('cotisations.create') }}" class="nav-link text-success fw-bold">
-                <span class="icon">💳</span> Cotiser
+                <i class="bi bi-credit-card text-success"></i> Cotiser
             </a>
         @endif
     </nav>
     <main class="col-md-10 py-4 px-4">
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show rounded-3">
-                ✅ {{ session('success') }}
+                <i class="bi bi-check-circle-fill"></i> {{ session('success') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
         @if(session('warning'))
             <div class="alert alert-warning alert-dismissible fade show rounded-3">
-                ⚠️ {{ session('warning') }}
+                <i class="bi bi-exclamation-triangle-fill"></i> {{ session('warning') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
         @if(session('error'))
             <div class="alert alert-danger alert-dismissible fade show rounded-3">
-                ❌ {{ session('error') }}
+                <i class="bi bi-x-circle-fill"></i> {{ session('error') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif

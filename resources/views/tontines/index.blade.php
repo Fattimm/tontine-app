@@ -4,7 +4,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0 fw-bold">💼 Tontines</h4>
+        <h4 class="mb-0 fw-bold"><i class="bi bi-briefcase text-success"></i> Tontines</h4>
         <small class="text-muted">{{ $tontines->total() }} tontine(s)</small>
     </div>
     <a href="{{ route('tontines.create') }}" class="btn btn-success btn-sm px-3">+ Nouvelle tontine</a>

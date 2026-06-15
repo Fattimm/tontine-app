@@ -3,7 +3,7 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold mb-0">🛡️ Dashboard Administrateur</h4>
+    <h4 class="fw-bold mb-0"><i class="bi bi-shield-check text-danger"></i> Dashboard Administrateur</h4>
     <span class="badge bg-danger px-3 py-2">Admin</span>
 </div>
 
@@ -44,7 +44,7 @@
                 <a href="{{ route('admin.users') }}"
                    class="card text-decoration-none border-primary h-100">
                     <div class="card-body d-flex align-items-center gap-3">
-                        <span class="fs-2">🔑</span>
+                        <span class="fs-2"><i class="bi bi-key text-warning"></i></span>
                         <div>
                             <div class="fw-semibold">Gérer les utilisateurs</div>
                             <div class="text-muted small">Créer organisateurs et membres</div>
@@ -55,7 +55,7 @@
             <div class="col-md-4">
                 <div class="card border-0 bg-light h-100">
                     <div class="card-body d-flex align-items-center gap-3">
-                        <span class="fs-2">🚫</span>
+                        <span class="fs-2"><i class="bi bi-slash-circle"></i></span>
                         <div>
                             <div class="fw-semibold text-muted">Tontines</div>
                             <div class="text-muted small">Gérées par les organisateurs</div>
@@ -66,7 +66,7 @@
             <div class="col-md-4">
                 <div class="card border-0 bg-light h-100">
                     <div class="card-body d-flex align-items-center gap-3">
-                        <span class="fs-2">🚫</span>
+                        <span class="fs-2"><i class="bi bi-slash-circle"></i></span>
                         <div>
                             <div class="fw-semibold text-muted">Membres</div>
                             <div class="text-muted small">Gérés par les organisateurs</div>

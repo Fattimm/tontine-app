@@ -10,7 +10,7 @@ use Illuminate\Support\Collection;
 
 class TourService
 {
-    public function getListe($user): LengthAwarePaginator
+    public function getListe($user, array $filtres = []): LengthAwarePaginator
     {
         return Tontine::withCount([
                 'tours',
@@ -18,6 +18,9 @@ class TourService
                 'membres',
             ])
             ->when($user->isOrganisateur(), fn($q) => $q->where('organisateur_id', $user->id))
+            ->when($filtres['search']    ?? null, fn($q, $v) => $q->where('nom', 'like', "%$v%"))
+            ->when($filtres['statut']    ?? null, fn($q, $v) => $q->where('statut', $v))
+            ->when($filtres['frequence'] ?? null, fn($q, $v) => $q->where('frequence', $v))
             ->latest()
             ->paginate(10);
     }

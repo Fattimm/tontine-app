@@ -4,10 +4,15 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0 fw-bold">🔄 Tours & Tirages</h4>
+        <h4 class="mb-0 fw-bold"><i class="bi bi-trophy text-warning"></i> Tours & Tirages</h4>
         <small class="text-muted">{{ $tontines->total() }} tontine(s)</small>
     </div>
 </div>
+
+<x-filtres
+    :route="route('tours.index')"
+    :champs="['search', 'statut_tontine', 'frequence']"
+    placeholder="Rechercher une tontine..." />
 
 <div class="card">
     <div class="card-body p-0">
@@ -64,14 +69,14 @@
                     <td class="text-end">
                         <a href="{{ route('tontines.tirage', $tontine) }}"
                            class="btn btn-success btn-action fw-semibold">
-                            🎲 Gérer les tirages
+                            <i class="bi bi-shuffle text-white"></i> Gérer les tirages
                         </a>
                     </td>
                 </tr>
                 @empty
                 <tr>
                     <td colspan="6" class="text-center text-muted py-5">
-                        <div class="fs-1 mb-2">🔄</div>
+                        <div class="fs-1 mb-2"><i class="bi bi-trophy text-warning"></i></div>
                         Aucune tontine trouvée.
                         <a href="{{ route('tontines.create') }}" class="d-block mt-1">Créer une tontine</a>
                     </td>

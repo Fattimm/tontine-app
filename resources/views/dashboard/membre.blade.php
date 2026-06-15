@@ -3,7 +3,7 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold mb-0">👋 Bonjour, {{ auth()->user()->name }}</h4>
+    <h4 class="fw-bold mb-0"><i class="bi bi-hand-wave"></i> Bonjour, {{ auth()->user()->name }}</h4>
     <span class="badge bg-info px-3 py-2">Membre</span>
 </div>
 
@@ -80,13 +80,13 @@
                             <td>{{ number_format($t->montant_cotisation, 0, ',', ' ') }} FCFA</td>
                             <td>
                                 @if($monTour?->statut === 'complete')
-                                    <span class="badge bg-warning-subtle text-warning">🏆 Bénéficié</span>
+                                    <span class="badge bg-warning-subtle text-warning"><i class="bi bi-trophy"></i> Bénéficié</span>
                                 @elseif($monTour?->statut === 'en_attente')
-                                    <span class="badge bg-info-subtle text-info">⏳ Tour #{{ $monTour->numero_tour }}</span>
+                                    <span class="badge bg-info-subtle text-info"><i class="bi bi-hourglass-split"></i> Tour #{{ $monTour->numero_tour }}</span>
                                 @elseif($aCotiseCeMois)
-                                    <span class="badge bg-success-subtle text-success">✅ Cotisé ce mois</span>
+                                    <span class="badge bg-success-subtle text-success"><i class="bi bi-check-circle"></i> Cotisé ce mois</span>
                                 @else
-                                    <span class="badge bg-danger-subtle text-danger">⚠️ Pas encore cotisé</span>
+                                    <span class="badge bg-danger-subtle text-danger"><i class="bi bi-exclamation-triangle"></i> Pas encore cotisé</span>
                                 @endif
                             </td>
                             <td class="text-end d-flex gap-1 justify-content-end">
@@ -124,7 +124,7 @@
             <div class="card-header bg-white fw-semibold">Mon prochain tour</div>
             <div class="card-body text-center">
                 @if($prochainTour)
-                    <div class="display-4 mb-2">⏳</div>
+                    <div class="display-4 mb-2"><i class="bi bi-hourglass-split"></i></div>
                     <h5 class="fw-bold text-info">Tour #{{ $prochainTour->numero_tour }}</h5>
                     <p class="text-muted small mb-1">{{ $prochainTour->tontine->nom }}</p>
                     <p class="fw-bold text-success">
@@ -137,7 +137,7 @@
                         Prévu le {{ $prochainTour->date_prevue->format('d/m/Y') }}
                     </p>
                 @else
-                    <div class="display-4 mb-2">🎲</div>
+                    <div class="display-4 mb-2"><i class="bi bi-shuffle"></i></div>
                     <p class="text-muted small">Pas encore de tour assigné.</p>
                 @endif
             </div>
@@ -147,7 +147,7 @@
 
 @else
 <div class="alert alert-warning">
-    ⚠️ Votre compte n'est pas encore lié à un membre.
+    <i class="bi bi-exclamation-triangle-fill"></i> Votre compte n'est pas encore lié à un membre.
     Contactez votre organisateur.
 </div>
 @endif

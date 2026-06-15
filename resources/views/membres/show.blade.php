@@ -12,12 +12,12 @@
 {{-- Lien régénéré --}}
 @if(session('reset_url_regenere'))
 <div class="alert alert-info shadow-sm mb-4">
-    <h6 class="fw-bold mb-2">🔗 Nouveau lien généré</h6>
+    <h6 class="fw-bold mb-2"><i class="bi bi-link-45deg"></i> Nouveau lien généré</h6>
     <div class="d-flex gap-2 align-items-start flex-wrap">
         <code class="text-break small flex-grow-1" id="reset-link-regen">{{ session('reset_url_regenere') }}</code>
         <button class="btn btn-outline-secondary btn-sm flex-shrink-0"
-                onclick="navigator.clipboard.writeText(document.getElementById('reset-link-regen').textContent).then(() => this.textContent = '✅ Copié')">
-            📋 Copier
+                onclick="navigator.clipboard.writeText(document.getElementById('reset-link-regen').textContent).then(() => this.textContent = 'Copié ✓')">
+            <i class="bi bi-clipboard"></i> Copier
         </button>
     </div>
     <p class="text-muted small mt-2 mb-0">Valable 7 jours.</p>
@@ -25,12 +25,12 @@
 @elseif($tokenEnAttente)
 <div class="alert alert-warning shadow-sm mb-4 d-flex justify-content-between align-items-center gap-3 flex-wrap">
     <div>
-        <strong>⚠️ Compte non activé</strong>
+        <strong><i class="bi bi-exclamation-triangle-fill"></i> Compte non activé</strong>
         <div class="small text-muted">Ce membre n'a pas encore défini son mot de passe.</div>
     </div>
     <form action="{{ route('membres.regenerer-lien', $membre) }}" method="POST" class="flex-shrink-0">
         @csrf
-        <button class="btn btn-warning btn-sm fw-semibold">🔗 Regénérer le lien</button>
+        <button class="btn btn-warning btn-sm fw-semibold"><i class="bi bi-arrow-clockwise"></i> Regénérer le lien</button>
     </form>
 </div>
 @endif
@@ -71,7 +71,7 @@
             </div>
             <div class="card-footer bg-white">
                 <a href="{{ route('membres.edit', $membre) }}"
-                   class="btn btn-warning btn-sm w-100">✏️ Modifier</a>
+                   class="btn btn-warning btn-sm w-100"><i class="bi bi-pencil"></i> Modifier</a>
             </div>
         </div>
     </div>

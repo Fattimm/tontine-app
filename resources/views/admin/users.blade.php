@@ -3,7 +3,7 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold mb-0">🔑 Utilisateurs</h4>
+    <h4 class="fw-bold mb-0"><i class="bi bi-key text-warning"></i> Utilisateurs</h4>
     <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalCreate">
         + Nouvel utilisateur
     </button>

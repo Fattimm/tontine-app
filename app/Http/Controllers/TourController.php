@@ -19,7 +19,8 @@ class TourController extends Controller
     {
         $this->authorize('viewAny', Tour::class);
 
-        $tontines = $this->tourService->getListe(auth()->user());
+        $filtres  = request()->only(['search', 'statut', 'frequence']);
+        $tontines = $this->tourService->getListe(auth()->user(), $filtres);
 
         return view('tours.index', compact('tontines'));
     }

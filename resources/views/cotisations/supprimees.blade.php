@@ -4,7 +4,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0 fw-bold">🗑️ Cotisations supprimées</h4>
+        <h4 class="mb-0 fw-bold"><i class="bi bi-trash text-danger"></i> Cotisations supprimées</h4>
         <small class="text-muted">{{ $cotisations->total() }} cotisation(s) dans la corbeille</small>
     </div>
     <a href="{{ route('cotisations.index') }}" class="btn btn-outline-secondary btn-sm">← Retour aux cotisations</a>
@@ -41,7 +41,7 @@
                               data-confirm-type="success"
                               data-confirm-btn="Oui, restaurer">
                             @csrf @method('PATCH')
-                            <button class="btn btn-success btn-action">↩ Restaurer</button>
+                            <button class="btn btn-success btn-action"><i class="bi bi-arrow-counterclockwise"></i> Restaurer</button>
                         </form>
                     </td>
                 </tr>

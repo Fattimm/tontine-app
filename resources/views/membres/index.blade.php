@@ -5,7 +5,7 @@
 @if(session('nouveau_membre'))
 @php $nm = session('nouveau_membre'); @endphp
 <div class="alert alert-success border-success shadow-sm mb-4">
-    <h5 class="fw-bold">✅ Membre créé avec succès !</h5>
+    <h5 class="fw-bold"><i class="bi bi-check-circle-fill"></i> Membre créé avec succès !</h5>
     <p class="mb-1">Partagez ce lien d'activation à <strong>{{ $nm['nom'] }}</strong> :</p>
     <div class="bg-white rounded p-3 border mt-2">
         <div class="mb-2">
@@ -17,20 +17,20 @@
             <div class="d-flex gap-2 align-items-start mt-1 flex-wrap">
                 <code class="text-break small flex-grow-1" id="reset-link-new">{{ $nm['reset_url'] }}</code>
                 <button class="btn btn-outline-secondary btn-sm flex-shrink-0"
-                        onclick="navigator.clipboard.writeText(document.getElementById('reset-link-new').textContent).then(() => this.textContent = '✅ Copié')">
-                    📋 Copier
+                        onclick="navigator.clipboard.writeText(document.getElementById('reset-link-new').textContent).then(() => this.textContent = 'Copié ✓')">
+                    <i class="bi bi-clipboard"></i> Copier
                 </button>
             </div>
         </div>
     </div>
     <p class="text-muted small mt-2 mb-0">
-        ⚠️ Ce lien est valable <strong>7 jours</strong>. Vous pouvez en regénérer un depuis la fiche du membre.
+        <i class="bi bi-exclamation-triangle-fill"></i> Ce lien est valable <strong>7 jours</strong>. Vous pouvez en regénérer un depuis la fiche du membre.
     </p>
 </div>
 @endif
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0 fw-bold">👥 Membres</h4>
+        <h4 class="mb-0 fw-bold"><i class="bi bi-people text-primary"></i> Membres</h4>
         <small class="text-muted">{{ $membres->total() }} membre(s) enregistré(s)</small>
     </div>
     <a href="{{ route('membres.create') }}" class="btn btn-success btn-sm px-3">+ Nouveau membre</a>

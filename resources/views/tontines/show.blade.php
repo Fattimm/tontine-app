@@ -138,7 +138,7 @@
             <div class="card-body d-grid gap-2">
                 @if($tontine->statut === 'suspendue')
                     <div class="alert alert-warning mb-0 py-2 px-3 small text-center">
-                        ⏸ Tontine suspendue — prolongez la date de fin pour la relancer
+                        <i class="bi bi-pause-circle"></i> Tontine suspendue — prolongez la date de fin pour la relancer
                         <div class="mt-2">
                             <a href="{{ route('tontines.edit', $tontine) }}"
                                class="btn btn-warning btn-sm">Modifier la date</a>
@@ -146,19 +146,19 @@
                     </div>
                 @elseif($tontine->statut === 'terminee')
                     <div class="alert alert-secondary mb-0 py-2 px-3 small text-center">
-                        ✅ Tontine terminée — tous les membres ont bénéficié
+                        <i class="bi bi-check-circle"></i> Tontine terminée — tous les membres ont bénéficié
                     </div>
                 @endif
 
                 <a href="{{ route('cotisations.par-tontine', $tontine) }}"
-                   class="btn btn-outline-primary">💳 Voir les cotisations</a>
+                   class="btn btn-outline-primary"><i class="bi bi-credit-card"></i> Voir les cotisations</a>
                 <a href="{{ route('tontines.export-pdf', $tontine) }}"
                    class="btn btn-outline-danger" target="_blank">Exporter PDF</a>
                 <a href="{{ route('cotisations.create') }}"
                    class="btn btn-outline-success">+ Enregistrer cotisation</a>
                 @can('update', $tontine)
                 <a href="{{ route('tontines.edit', $tontine) }}"
-                   class="btn btn-outline-warning">✏️ Modifier</a>
+                   class="btn btn-outline-warning"><i class="bi bi-pencil"></i> Modifier</a>
                 @endcan
             </div>
         </div>
@@ -187,7 +187,7 @@
                     </form>
                 @else
                     <div class="alert alert-warning mb-0 text-center">
-                        🔒 Tontine complète ({{ $tontine->nombre_membres_max }} membres max)
+                        <i class="bi bi-lock"></i> Tontine complète ({{ $tontine->nombre_membres_max }} membres max)
                     </div>
                 @endif
             </div>

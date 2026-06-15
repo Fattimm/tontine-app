@@ -3,7 +3,7 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold mb-0">👋 Bonjour, {{ auth()->user()->name }}</h4>
+    <h4 class="fw-bold mb-0"><i class="bi bi-hand-wave"></i> Bonjour, {{ auth()->user()->name }}</h4>
     <span class="badge bg-success">Organisateur</span>
 </div>
 
@@ -38,7 +38,7 @@
     <div class="col-md-3">
         <a href="{{ route('membres.create') }}" class="card text-decoration-none border-success">
             <div class="card-body text-center py-3">
-                <div class="fs-2">➕</div>
+                <div class="fs-2"><i class="bi bi-plus-circle text-success"></i></div>
                 <div class="fw-semibold small">Nouveau membre</div>
             </div>
         </a>
@@ -46,7 +46,7 @@
     <div class="col-md-3">
         <a href="{{ route('tontines.create') }}" class="card text-decoration-none border-primary">
             <div class="card-body text-center py-3">
-                <div class="fs-2">💼</div>
+                <div class="fs-2"><i class="bi bi-briefcase text-primary"></i></div>
                 <div class="fw-semibold small">Nouvelle tontine</div>
             </div>
         </a>
@@ -54,7 +54,7 @@
     <div class="col-md-3">
         <a href="{{ route('cotisations.create') }}" class="card text-decoration-none border-warning">
             <div class="card-body text-center py-3">
-                <div class="fs-2">💳</div>
+                <div class="fs-2"><i class="bi bi-credit-card text-warning"></i></div>
                 <div class="fw-semibold small">Enregistrer cotisation</div>
             </div>
         </a>
@@ -62,7 +62,7 @@
     <div class="col-md-3">
         <a href="{{ route('tontines.index') }}" class="card text-decoration-none">
             <div class="card-body text-center py-3">
-                <div class="fs-2">🎲</div>
+                <div class="fs-2"><i class="bi bi-shuffle text-secondary"></i></div>
                 <div class="fw-semibold small">Voir les tontines</div>
             </div>
         </a>
