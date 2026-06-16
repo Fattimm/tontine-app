@@ -301,6 +301,11 @@ class TontineService
 
     public function modifier(Tontine $tontine, array $data): Tontine
     {
+        if ($tontine->tours()->exists()) {
+            // Seuls le nom et la date de fin sont modifiables après le premier tirage
+            $data = array_intersect_key($data, array_flip(['nom', 'date_fin']));
+        }
+
         $tontine->update($data);
         return $tontine->fresh();
     }
@@ -360,6 +365,10 @@ class TontineService
     {
         if ($tontine->statut === 'terminee') {
             return ['succes' => false, 'message' => 'Impossible de modifier une tontine terminée.'];
+        }
+
+        if ($tontine->tours()->exists()) {
+            return ['succes' => false, 'message' => 'Impossible d\'ajouter un membre après le premier tirage — les tours sont déjà en cours.'];
         }
 
         if (!$tontine->peutAjouterMembre()) {

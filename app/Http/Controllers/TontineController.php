@@ -57,7 +57,8 @@ class TontineController extends Controller
     public function edit(Tontine $tontine)
     {
         $this->authorize('update', $tontine);
-        return view('tontines.edit', compact('tontine'));
+        $tirageDemarre = $tontine->tours()->exists();
+        return view('tontines.edit', compact('tontine', 'tirageDemarre'));
     }
 
     public function update(UpdateTontineRequest $request, Tontine $tontine)
@@ -65,7 +66,11 @@ class TontineController extends Controller
         $this->authorize('update', $tontine);
         $this->tontineService->modifier($tontine, $request->validated());
 
-        return redirect()->route('tontines.index')->with('success', 'Tontine mise à jour.');
+        $message = $tontine->tours()->exists()
+            ? 'Tontine mise à jour (seuls le nom et la date de fin sont modifiables après le premier tirage).'
+            : 'Tontine mise à jour.';
+
+        return redirect()->route('tontines.index')->with('success', $message);
     }
 
     public function destroy(Tontine $tontine)

@@ -8,6 +8,12 @@
         <a href="{{ route('tontines.index') }}" class="btn btn-sm btn-outline-secondary">← Retour</a>
         <h4 class="mb-0 fw-bold">Modifier : {{ $tontine->nom }}</h4>
     </div>
+    @if($tirageDemarre)
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <strong>Tirage déjà démarré</strong> — seuls le <strong>nom</strong> et la <strong>date de fin</strong> peuvent être modifiés. Les autres champs sont verrouillés.
+    </div>
+    @endif
     <div class="card">
         <div class="card-body p-4">
             <form action="{{ route('tontines.update', $tontine) }}" method="POST">
