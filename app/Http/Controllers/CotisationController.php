@@ -58,14 +58,14 @@ class CotisationController extends Controller
             $validated['membre_id'] = $user->membre->id;
         }
 
-        $resultat = $this->cotisationService->enregistrer($validated);
+        $resultat = $this->cotisationService->enregistrer($validated, $user->isMembre());
 
         if (!$resultat['succes']) {
             return back()->withInput()->with('error', $resultat['message']);
         }
 
-        $type     = $resultat['reserve'] ? 'warning' : 'success';
-        $redirect = auth()->user()->isMembre()
+        $type     = ($resultat['en_attente'] || $resultat['reserve']) ? 'warning' : 'success';
+        $redirect = $user->isMembre()
             ? redirect()->route('dashboard')
             : redirect()->route('cotisations.index');
 
@@ -100,6 +100,17 @@ class CotisationController extends Controller
         $cotisations = $this->cotisationService->getCotisationsParTontine($tontine, $filtres);
 
         return view('cotisations.par_tontine', compact('tontine', 'cotisations', 'filtres'));
+    }
+
+    public function valider(Cotisation $cotisation)
+    {
+        if ($cotisation->statut !== 'en_attente') {
+            return back()->with('error', 'Cette cotisation n\'est pas en attente de validation.');
+        }
+
+        $this->cotisationService->valider($cotisation);
+
+        return back()->with('success', 'Cotisation de ' . $cotisation->membre->nom_complet . ' validée avec succès.');
     }
 
     public function destroy(Cotisation $cotisation)

@@ -53,9 +53,10 @@ class AuthController extends Controller
 
         if ($user->isOrganisateur()) {
             return view('dashboard.organisateur', [
-                'nbMembres'     => \App\Models\Membre::count(),
-                'nbTontines'    => \App\Models\Tontine::where('statut', 'active')->count(),
-                'nbCotisations' => \App\Models\Cotisation::whereMonth('date_paiement', now()->month)->count(),
+                'nbMembres'        => \App\Models\Membre::count(),
+                'nbTontines'       => \App\Models\Tontine::where('statut', 'active')->count(),
+                'nbCotisations'    => \App\Models\Cotisation::whereMonth('date_paiement', now()->month)->count(),
+                'nbEnAttente'      => \App\Models\Cotisation::where('statut', 'en_attente')->count(),
             ]);
         }
 

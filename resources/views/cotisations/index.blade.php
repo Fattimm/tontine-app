@@ -86,6 +86,19 @@
                         @endif
                     </td>
                     <td class="text-end">
+                        @if($c->statut === 'en_attente')
+                            <form action="{{ route('cotisations.valider', $c) }}" method="POST"
+                                  class="d-inline"
+                                  data-confirm="Confirmer que vous avez bien reçu la cotisation de {{ $c->membre?->nom_complet }} ?"
+                                  data-confirm-titre="Valider la cotisation"
+                                  data-confirm-type="success"
+                                  data-confirm-btn="Oui, valider">
+                                @csrf @method('PATCH')
+                                <button class="btn btn-success btn-action fw-semibold">
+                                    <i class="bi bi-check-circle"></i> Valider
+                                </button>
+                            </form>
+                        @endif
                         <a href="{{ route('cotisations.show', $c) }}"
                            class="btn btn-outline-info btn-action">Voir</a>
                         <form action="{{ route('cotisations.destroy', $c) }}" method="POST"

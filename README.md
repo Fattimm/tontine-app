@@ -55,7 +55,8 @@ Les membres reçoivent un lien de création de mot de passe à la création de l
 - Gestion des tontines (CRUD, statuts, tirage aléatoire)
 - Gestion des membres avec compte utilisateur lié
 - Cotisations avec détection de doublon et gestion des réserves
-- Notifications email (confirmation cotisation, tirage au sort)
+- Validation des cotisations par l'organisateur (membre soumet → organisateur valide)
+- Notifications email (confirmation cotisation après validation, tirage au sort)
 - Export PDF des cotisations et récapitulatif tontine
 - Mot de passe oublié / réinitialisation
 - Soft deletes avec corbeille sur toutes les entités

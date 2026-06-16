@@ -14,7 +14,7 @@ use Carbon\Carbon;
 
 class CotisationService
 {
-    public function enregistrer(array $data): array
+    public function enregistrer(array $data, bool $parMembre = false): array
     {
         $membre     = Membre::findOrFail($data['membre_id']);
         $tontine    = Tontine::findOrFail($data['tontine_id']);
@@ -42,20 +42,20 @@ class CotisationService
 
         $code = $this->getPeriodCode($datePeriode, $tontine->frequence);
 
-        // Doublon : normale vs. réserve séparés pour un message clair
+        // Doublon : bloque si paye OU en_attente pour la même période
         $dejaExiste = Cotisation::where('membre_id', $membre->id)
             ->where('tontine_id', $tontine->id)
             ->where('est_reserve', $estReserve)
             ->where('mois', $code['mois'])
             ->where('annee', $code['annee'])
-            ->where('statut', 'paye')
+            ->whereIn('statut', ['paye', 'en_attente'])
             ->exists();
 
         if ($dejaExiste) {
             if ($estReserve) {
                 return ['succes' => false, 'message' => 'Une réserve existe déjà pour la prochaine période.'];
             }
-            return ['succes' => false, 'message' => 'Une cotisation normale a déjà été enregistrée pour cette période (peut-être par l\'organisateur). Si vous souhaitez payer en avance, sélectionnez "Réserve".'];
+            return ['succes' => false, 'message' => 'Une cotisation est déjà enregistrée pour cette période (payée ou en attente de validation).'];
         }
 
         // Réserve ne dépasse pas la date de fin
@@ -65,8 +65,11 @@ class CotisationService
 
         return DB::transaction(function () use (
             $data, $membre, $tontine, $montant,
-            $datePaie, $estReserve, $datePeriode, $code
+            $datePaie, $estReserve, $datePeriode, $code, $parMembre
         ) {
+            // Si c'est le membre lui-même → en_attente (validation organisateur requise)
+            $statut = $parMembre ? 'en_attente' : 'paye';
+
             $cotisation = Cotisation::create([
                 'membre_id'     => $membre->id,
                 'tontine_id'    => $tontine->id,
@@ -74,7 +77,7 @@ class CotisationService
                 'montant'       => $montant,
                 'date_paiement' => $data['date_paiement'],
                 'mode_paiement' => $data['mode_paiement'],
-                'statut'        => 'paye',
+                'statut'        => $statut,
                 'est_reserve'   => $estReserve,
                 'mois'          => $code['mois'],
                 'annee'         => $code['annee'],
@@ -83,23 +86,40 @@ class CotisationService
                     : ($data['notes'] ?? null),
             ]);
 
-            $message = $estReserve
-                ? 'Cotisation en réserve enregistrée (période du ' . $datePeriode->translatedFormat('d F Y') . ').'
-                : 'Cotisation normale enregistrée avec succès.';
+            if ($parMembre) {
+                $message = 'Cotisation soumise avec succès. L\'organisateur va valider votre paiement.';
+            } elseif ($estReserve) {
+                $message = 'Cotisation en réserve enregistrée (période du ' . $datePeriode->translatedFormat('d F Y') . ').';
+            } else {
+                $message = 'Cotisation normale enregistrée avec succès.';
+            }
 
-            // Notifier le membre par email s'il a une adresse réelle
-            $emailMembre = $membre->user?->email;
-            if ($emailMembre && !str_ends_with($emailMembre, '@tontine.sn')) {
-                Mail::to($emailMembre)->send(new CotisationEnregistree($cotisation));
+            // Email seulement si directement validé (organisateur)
+            if (!$parMembre) {
+                $emailMembre = $membre->user?->email;
+                if ($emailMembre && !str_ends_with($emailMembre, '@tontine.sn')) {
+                    Mail::to($emailMembre)->send(new CotisationEnregistree($cotisation));
+                }
             }
 
             return [
-                'succes'     => true,
-                'reserve'    => $estReserve,
-                'message'    => $message,
-                'cotisation' => $cotisation,
+                'succes'      => true,
+                'reserve'     => $estReserve,
+                'en_attente'  => $parMembre,
+                'message'     => $message,
+                'cotisation'  => $cotisation,
             ];
         });
+    }
+
+    public function valider(Cotisation $cotisation): void
+    {
+        $cotisation->update(['statut' => 'paye']);
+
+        $emailMembre = $cotisation->membre->user?->email;
+        if ($emailMembre && !str_ends_with($emailMembre, '@tontine.sn')) {
+            Mail::to($emailMembre)->send(new CotisationEnregistree($cotisation));
+        }
     }
 
     // Convertit une date en code de période selon la fréquence

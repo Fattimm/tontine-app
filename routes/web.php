@@ -79,6 +79,7 @@ Route::middleware(['auth', 'organisateur'])->group(function () {
         [TontineController::class, 'executerTirage'])->name('tontines.tirage.executer');
 
     // Cotisations — index, show, destroy (pas create/store, déjà au dessus)
+    Route::patch('cotisations/{cotisation}/valider', [CotisationController::class, 'valider'])->name('cotisations.valider');
     Route::get('cotisations/supprimees', [CotisationController::class, 'supprimees'])->name('cotisations.supprimees');
     Route::patch('cotisations/{id}/restaurer', [CotisationController::class, 'restaurer'])->name('cotisations.restaurer');
     Route::get('cotisations/export-pdf', [CotisationController::class, 'exportPdf'])->name('cotisations.export-pdf');

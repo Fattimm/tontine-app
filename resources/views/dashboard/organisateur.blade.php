@@ -7,6 +7,18 @@
     <span class="badge bg-success">Organisateur</span>
 </div>
 
+@if($nbEnAttente > 0)
+<div class="alert alert-warning d-flex align-items-center gap-2 mb-4">
+    <i class="bi bi-hourglass-split fs-5"></i>
+    <div>
+        <strong>{{ $nbEnAttente }} cotisation(s) en attente de validation.</strong>
+        <a href="{{ route('cotisations.index', ['statut' => 'en_attente']) }}" class="ms-2 fw-semibold">
+            Voir et valider <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+</div>
+@endif
+
 <div class="row g-3 mb-4">
     <div class="col-md-4">
         <div class="card text-center border-success">
