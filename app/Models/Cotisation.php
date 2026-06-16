@@ -15,7 +15,7 @@ class Cotisation extends Model
         'membre_id', 'tontine_id', 'tour_id',
         'montant', 'date_paiement', 'mode_paiement',
         'statut', 'reference', 'notes','est_reserve',
-        'mois', 'annee', 
+        'periode', 'annee',
     ];
 
     protected $casts = [

@@ -215,7 +215,7 @@
                             <td>
                                 @if($c->est_reserve)
                                     <span class="badge bg-info-subtle text-info">
-                                        Réserve {{ $c->mois }}/{{ $c->annee }}
+                                        Réserve {{ $c->periode }}/{{ $c->annee }}
                                     </span>
                                 @else
                                     <span class="badge bg-light text-dark border">

@@ -65,21 +65,17 @@ class TontineService
      */
     public function verifierEtTirer(Tontine $tontine): ?Tour
     {
-        $moisActuel = now()->month;
-        $anneeActuelle = now()->year;
-
+        $code      = $this->getPeriodCode(now(), $tontine->frequence);
         $nbMembres = $tontine->membres()->count();
 
-        // Compter combien ont cotisé ce mois (cotisations normales, pas réserves)
         $nbAyantCotise = \App\Models\Cotisation::where('tontine_id', $tontine->id)
-            ->where('mois', $moisActuel)
-            ->where('annee', $anneeActuelle)
+            ->where('periode', $code['periode'])
+            ->where('annee', $code['annee'])
             ->where('est_reserve', false)
             ->where('statut', 'paye')
             ->distinct('membre_id')
             ->count('membre_id');
 
-        // ✅ Tout le monde a cotisé → on tire
         if ($nbAyantCotise >= $nbMembres) {
             return $this->genererTirage($tontine);
         }
@@ -122,18 +118,16 @@ class TontineService
         ];
     }
 
-    public function tousOntCotiseCeMois(Tontine $tontine): bool
+    public function tousOntCotiseCettePeriode(Tontine $tontine): bool
     {
-        $mois  = now()->month;
-        $annee = now()->year;
-
+        $code      = $this->getPeriodCode(now(), $tontine->frequence);
         $nbMembres = $tontine->membres()->count();
 
         if ($nbMembres === 0) return false;
 
         $nbAyantCotise = \App\Models\Cotisation::where('tontine_id', $tontine->id)
-            ->where('mois', $mois)
-            ->where('annee', $annee)
+            ->where('periode', $code['periode'])
+            ->where('annee', $code['annee'])
             ->where('est_reserve', false)
             ->where('statut', 'paye')
             ->distinct('membre_id')
@@ -168,14 +162,25 @@ class TontineService
         $nbMembres = $tontine->membres()->count();
         if ($nbMembres === 0) return false;
 
-        // Date de référence : dernier tirage ou création de la tontine
         $depuis = $tontine->tours()->latest('created_at')->value('created_at')
                   ?? $tontine->created_at;
 
-        $nbAyantCotise = \App\Models\Cotisation::where('tontine_id', $tontine->id)
-            ->where('est_reserve', false)
+        $code = $this->getPeriodCode(now(), $tontine->frequence);
+
+        $nbAyantCotise = Cotisation::where('tontine_id', $tontine->id)
             ->where('statut', 'paye')
-            ->where('created_at', '>', $depuis)
+            ->where(function ($q) use ($depuis, $code) {
+                // Cotisation normale depuis le dernier tirage
+                $q->where(function ($q2) use ($depuis) {
+                    $q2->where('est_reserve', false)
+                       ->where('created_at', '>', $depuis);
+                // OU réserve ciblant la période courante
+                })->orWhere(function ($q2) use ($code) {
+                    $q2->where('est_reserve', true)
+                       ->where('periode', $code['periode'])
+                       ->where('annee', $code['annee']);
+                });
+            })
             ->distinct('membre_id')
             ->count('membre_id');
 
@@ -320,16 +325,35 @@ class TontineService
     public function getMembresAvecStatutCotisation(Tontine $tontine): Collection
     {
         $depuis = $tontine->tours()->latest('created_at')->value('created_at') ?? $tontine->created_at;
+        $code   = $this->getPeriodCode(now(), $tontine->frequence);
 
-        return $tontine->membres->map(function ($m) use ($tontine, $depuis) {
+        return $tontine->membres->map(function ($m) use ($tontine, $depuis, $code) {
             $m->a_cotise = Cotisation::where('membre_id', $m->id)
                 ->where('tontine_id', $tontine->id)
-                ->where('est_reserve', false)
                 ->where('statut', 'paye')
-                ->where('created_at', '>', $depuis)
+                ->where(function ($q) use ($depuis, $code) {
+                    $q->where(function ($q2) use ($depuis) {
+                        $q2->where('est_reserve', false)
+                           ->where('created_at', '>', $depuis);
+                    })->orWhere(function ($q2) use ($code) {
+                        $q2->where('est_reserve', true)
+                           ->where('periode', $code['periode'])
+                           ->where('annee', $code['annee']);
+                    });
+                })
                 ->exists();
             return $m;
         });
+    }
+
+    private function getPeriodCode(Carbon $date, string $frequence): array
+    {
+        return match($frequence) {
+            'quotidien'    => ['periode' => $date->dayOfYear, 'annee' => $date->year],
+            'hebdomadaire' => ['periode' => $date->week,      'annee' => $date->year],
+            'trimestriel'  => ['periode' => $date->quarter,   'annee' => $date->year],
+            default        => ['periode' => $date->month,     'annee' => $date->year],
+        };
     }
 
     public function ajouterMembre(Tontine $tontine, int $membreId): array
@@ -368,8 +392,9 @@ class TontineService
             return ['succes' => false, 'message' => $membre->nom_complet . ' a déjà un tour assigné, impossible de le retirer.'];
         }
 
-        if (Cotisation::where('membre_id', $membre->id)->where('tontine_id', $tontine->id)->where('mois', now()->month)->where('annee', now()->year)->exists()) {
-            return ['succes' => false, 'message' => $membre->nom_complet . ' a déjà cotisé ce mois, impossible de le retirer.'];
+        $code = $this->getPeriodCode(now(), $tontine->frequence);
+        if (Cotisation::where('membre_id', $membre->id)->where('tontine_id', $tontine->id)->where('periode', $code['periode'])->where('annee', $code['annee'])->exists()) {
+            return ['succes' => false, 'message' => $membre->nom_complet . ' a déjà cotisé pour cette période, impossible de le retirer.'];
         }
 
         $tontine->membres()->detach($membre->id);

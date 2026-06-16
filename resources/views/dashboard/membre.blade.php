@@ -63,9 +63,15 @@
                     <tbody>
                         @forelse($membre->tontines()->whereNull('tontines.deleted_at')->get() as $t)
                         @php
+                            $periodeActuelle = match($t->frequence) {
+                                'quotidien'    => now()->dayOfYear,
+                                'hebdomadaire' => now()->week,
+                                'trimestriel'  => now()->quarter,
+                                default        => now()->month,
+                            };
                             $aCotiseCeMois = \App\Models\Cotisation::where('membre_id', $membre->id)
                                 ->where('tontine_id', $t->id)
-                                ->where('mois', now()->month)
+                                ->where('periode', $periodeActuelle)
                                 ->where('annee', now()->year)
                                 ->where('est_reserve', false)
                                 ->where('statut', 'paye')

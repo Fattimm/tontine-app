@@ -42,18 +42,17 @@ class CotisationService
 
         $code = $this->getPeriodCode($datePeriode, $tontine->frequence);
 
-        // Doublon : bloque si paye OU en_attente pour la même période
-        $dejaExiste = Cotisation::where('membre_id', $membre->id)
+        // Doublon : bloque si paye OU en_attente pour la même période (normale ou réserve)
+        $cotisationExistante = Cotisation::where('membre_id', $membre->id)
             ->where('tontine_id', $tontine->id)
-            ->where('est_reserve', $estReserve)
-            ->where('mois', $code['mois'])
+            ->where('periode', $code['periode'])
             ->where('annee', $code['annee'])
             ->whereIn('statut', ['paye', 'en_attente'])
-            ->exists();
+            ->first();
 
-        if ($dejaExiste) {
-            if ($estReserve) {
-                return ['succes' => false, 'message' => 'Une réserve existe déjà pour la prochaine période.'];
+        if ($cotisationExistante) {
+            if ($cotisationExistante->est_reserve && !$estReserve) {
+                return ['succes' => false, 'message' => 'Tu as déjà une réserve qui couvre cette période. Tu n\'as pas besoin de cotiser à nouveau.'];
             }
             return ['succes' => false, 'message' => 'Une cotisation est déjà enregistrée pour cette période (payée ou en attente de validation).'];
         }
@@ -79,7 +78,7 @@ class CotisationService
                 'mode_paiement' => $data['mode_paiement'],
                 'statut'        => $statut,
                 'est_reserve'   => $estReserve,
-                'mois'          => $code['mois'],
+                'periode'          => $code['periode'],
                 'annee'         => $code['annee'],
                 'notes'         => $estReserve
                     ? 'Réserve pour la période du ' . $datePeriode->translatedFormat('d F Y')
@@ -127,10 +126,10 @@ class CotisationService
     private function getPeriodCode(Carbon $date, string $frequence): array
     {
         return match($frequence) {
-            'quotidien'    => ['mois' => $date->dayOfYear, 'annee' => $date->year],
-            'hebdomadaire' => ['mois' => $date->week,      'annee' => $date->year],
-            'trimestriel'  => ['mois' => $date->quarter,   'annee' => $date->year],
-            default        => ['mois' => $date->month,     'annee' => $date->year],
+            'quotidien'    => ['periode' => $date->dayOfYear, 'annee' => $date->year],
+            'hebdomadaire' => ['periode' => $date->week,      'annee' => $date->year],
+            'trimestriel'  => ['periode' => $date->quarter,   'annee' => $date->year],
+            default        => ['periode' => $date->month,     'annee' => $date->year],
         };
     }
 
