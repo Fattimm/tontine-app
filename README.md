@@ -56,11 +56,14 @@ Les membres reçoivent un lien de création de mot de passe à la création de l
 - Gestion des membres avec compte utilisateur lié
 - Cotisations avec détection de doublon et gestion des réserves
 - Validation des cotisations par l'organisateur (membre soumet → organisateur valide)
+- Réactivation automatique d'une tontine suspendue si la date de fin est prolongée
+- Blocage modification tontine et ajout membre après le premier tirage
+- Filtres de recherche sur tontines, cotisations et tours
 - Notifications email (confirmation cotisation après validation, tirage au sort)
 - Export PDF des cotisations et récapitulatif tontine
 - Mot de passe oublié / réinitialisation
 - Soft deletes avec corbeille sur toutes les entités
-- Policies par rôle sur toutes les ressources
+- Isolation des ressources par organisateur (policies strictes — chaque organisateur ne voit et ne modifie que ses propres tontines, cotisations et membres)
 - 25 tests Feature (auth, rôles, cotisations, policies)
 
 ---

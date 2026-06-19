@@ -64,11 +64,16 @@ class TontineController extends Controller
     public function update(UpdateTontineRequest $request, Tontine $tontine)
     {
         $this->authorize('update', $tontine);
-        $this->tontineService->modifier($tontine, $request->validated());
+        $estSuspendue = $tontine->statut === 'suspendue';
+        $tontineMAJ   = $this->tontineService->modifier($tontine, $request->validated());
 
-        $message = $tontine->tours()->exists()
-            ? 'Tontine mise à jour (seuls le nom et la date de fin sont modifiables après le premier tirage).'
-            : 'Tontine mise à jour.';
+        if ($estSuspendue && $tontineMAJ->statut === 'active') {
+            $message = 'Tontine réactivée avec succès — la date de fin a été prolongée.';
+        } elseif ($tontineMAJ->tours()->exists()) {
+            $message = 'Tontine mise à jour (seuls le nom et la date de fin sont modifiables après le premier tirage).';
+        } else {
+            $message = 'Tontine mise à jour.';
+        }
 
         return redirect()->route('tontines.index')->with('success', $message);
     }

@@ -36,6 +36,10 @@ class MembrePolicy
 
     public function delete(User $user, Membre $membre): bool
     {
-        return $user->isOrganisateur();
+        // Un organisateur ne peut supprimer que les membres de SES tontines
+        return $user->isOrganisateur()
+            && $membre->tontines()
+                      ->where('organisateur_id', $user->id)
+                      ->exists();
     }
 }

@@ -74,6 +74,7 @@ class CotisationController extends Controller
 
     public function show(Cotisation $cotisation)
     {
+        $this->authorize('view', $cotisation);
         $cotisation->load(['membre', 'tontine', 'tour']);
 
         return view('cotisations.show', compact('cotisation'));
@@ -104,6 +105,8 @@ class CotisationController extends Controller
 
     public function valider(Cotisation $cotisation)
     {
+        $this->authorize('delete', $cotisation);
+
         if ($cotisation->statut !== 'en_attente') {
             return back()->with('error', 'Cette cotisation n\'est pas en attente de validation.');
         }
@@ -115,6 +118,7 @@ class CotisationController extends Controller
 
     public function destroy(Cotisation $cotisation)
     {
+        $this->authorize('delete', $cotisation);
         $this->cotisationService->supprimer($cotisation);
 
         return back()->with('success', 'Cotisation supprimée.');

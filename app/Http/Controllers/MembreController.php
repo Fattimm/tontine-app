@@ -74,6 +74,7 @@ class MembreController extends Controller
 
     public function destroy(Membre $membre)
     {
+        $this->authorize('delete', $membre);
         try {
             $this->membreService->supprimer($membre);
             return redirect()->route('membres.index')->with('success', 'Membre supprimé.');

@@ -20,18 +20,20 @@ class CotisationPolicy
 
     public function view(User $user, Cotisation $cotisation): bool
     {
-        if ($user->isOrganisateur()) return true;
+        if ($user->isOrganisateur()) {
+            return $cotisation->tontine?->organisateur_id === $user->id;
+        }
         return $user->membre_id === $cotisation->membre_id;
     }
 
     public function create(User $user): bool
     {
-        // ✅ Organisateur ET membre peuvent cotiser
         return $user->isOrganisateur() || $user->isMembre();
     }
 
     public function delete(User $user, Cotisation $cotisation): bool
     {
-        return $user->isOrganisateur();
+        return $user->isOrganisateur()
+            && $cotisation->tontine?->organisateur_id === $user->id;
     }
 }

@@ -166,20 +166,18 @@ class TontineService
                   ?? $tontine->created_at;
 
         $code = $this->getPeriodCode(now(), $tontine->frequence);
+        $codeNum = $code['annee'] * 1000 + $code['periode'];
 
         $nbAyantCotise = Cotisation::where('tontine_id', $tontine->id)
             ->where('statut', 'paye')
-            ->where(function ($q) use ($depuis, $code) {
-                // Cotisation normale depuis le dernier tirage
-                $q->where(function ($q2) use ($depuis) {
-                    $q2->where('est_reserve', false)
-                       ->where('created_at', '>', $depuis);
-                // OU réserve ciblant la période courante
-                })->orWhere(function ($q2) use ($code) {
-                    $q2->where('est_reserve', true)
-                       ->where('periode', $code['periode'])
-                       ->where('annee', $code['annee']);
-                });
+            ->where('created_at', '>', $depuis)
+            ->where(function ($q) use ($codeNum) {
+                $q->where('est_reserve', false)
+                  ->orWhere(function ($q2) use ($codeNum) {
+                      // Réserve dont la période cible est déjà arrivée
+                      $q2->where('est_reserve', true)
+                         ->whereRaw('(annee * 1000 + periode) <= ?', [$codeNum]);
+                  });
             })
             ->distinct('membre_id')
             ->count('membre_id');
@@ -307,6 +305,16 @@ class TontineService
         }
 
         $tontine->update($data);
+        $tontine->refresh();
+
+        // Si suspendue et date_fin prolongée dans le futur → réactiver automatiquement
+        if ($tontine->statut === 'suspendue') {
+            $dateFin = $tontine->date_fin;
+            if (!$dateFin || $dateFin->gte(today())) {
+                $tontine->update(['statut' => 'active']);
+            }
+        }
+
         return $tontine->fresh();
     }
 
@@ -329,22 +337,21 @@ class TontineService
 
     public function getMembresAvecStatutCotisation(Tontine $tontine): Collection
     {
-        $depuis = $tontine->tours()->latest('created_at')->value('created_at') ?? $tontine->created_at;
-        $code   = $this->getPeriodCode(now(), $tontine->frequence);
+        $depuis  = $tontine->tours()->latest('created_at')->value('created_at') ?? $tontine->created_at;
+        $code    = $this->getPeriodCode(now(), $tontine->frequence);
+        $codeNum = $code['annee'] * 1000 + $code['periode'];
 
-        return $tontine->membres->map(function ($m) use ($tontine, $depuis, $code) {
+        return $tontine->membres->map(function ($m) use ($tontine, $depuis, $codeNum) {
             $m->a_cotise = Cotisation::where('membre_id', $m->id)
                 ->where('tontine_id', $tontine->id)
                 ->where('statut', 'paye')
-                ->where(function ($q) use ($depuis, $code) {
-                    $q->where(function ($q2) use ($depuis) {
-                        $q2->where('est_reserve', false)
-                           ->where('created_at', '>', $depuis);
-                    })->orWhere(function ($q2) use ($code) {
-                        $q2->where('est_reserve', true)
-                           ->where('periode', $code['periode'])
-                           ->where('annee', $code['annee']);
-                    });
+                ->where('created_at', '>', $depuis)
+                ->where(function ($q) use ($codeNum) {
+                    $q->where('est_reserve', false)
+                      ->orWhere(function ($q2) use ($codeNum) {
+                          $q2->where('est_reserve', true)
+                             ->whereRaw('(annee * 1000 + periode) <= ?', [$codeNum]);
+                      });
                 })
                 ->exists();
             return $m;
